@@ -80,6 +80,7 @@ int MPI_File_write_shared(MPI_File fh, ROMIO_CONST void *buf, int count,
 
     /* --BEGIN ERROR HANDLING-- */
     MPIO_CHECK_INTEGRAL_ETYPE(adio_fh, count, datatype_size, myname, error_code);
+    /* method to select syncronization type */
     MPIO_CHECK_FS_SUPPORTS_SHARED(adio_fh, myname, error_code);
     /* --END ERROR HANDLING-- */
 

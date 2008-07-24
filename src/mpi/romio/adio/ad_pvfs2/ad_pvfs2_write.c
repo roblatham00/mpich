@@ -27,6 +27,7 @@ void ADIOI_PVFS2_WriteContig(ADIO_File fd, const void *buf, int count,
     MPI_Type_size_x(datatype, &datatype_size);
     len = datatype_size * count;
 
+
     ret = PVFS_Request_contiguous(len, PVFS_BYTE, &mem_req);
     /* --BEGIN ERROR HANDLING-- */
     if (ret != 0) {
@@ -50,6 +51,9 @@ void ADIOI_PVFS2_WriteContig(ADIO_File fd, const void *buf, int count,
 	return;
     }
     /* --END ERROR HANDLING-- */
+
+    if (fd->atomicity)
+	ADIOI_WRITE_LOCK(fd, offset, SEEK_SET, 0);
 
     if (file_ptr_type == ADIO_EXPLICIT_OFFSET) {
 #ifdef ADIOI_MPE_LOGGING
@@ -100,6 +104,8 @@ void ADIOI_PVFS2_WriteContig(ADIO_File fd, const void *buf, int count,
 #endif
     *error_code = MPI_SUCCESS;
 fn_exit:
+    if (fd->atomicity)
+	ADIOI_UNLOCK(fd, offset, SEEK_SET, 0);
     PVFS_Request_free(&file_req);
     PVFS_Request_free(&mem_req);
     return;

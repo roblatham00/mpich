@@ -61,17 +61,6 @@ void ADIOI_PVFS2_OldWriteStrided(ADIO_File fd, const void *buf, int count,
      * assume this limit*/
 #define MAX_ARRAY_SIZE 64
 
-    /* --BEGIN ERROR HANDLING-- */
-    if (fd->atomicity) {
-	*error_code = MPIO_Err_create_code(MPI_SUCCESS,
-					   MPIR_ERR_RECOVERABLE,
-					   myname, __LINE__,
-					   MPI_ERR_ARG,
-					   "Atomic noncontiguous writes are not supported by PVFS2", 0);
-	return;
-    }
-    /* --END ERROR HANDLING-- */
-
     ADIOI_Datatype_iscontig(datatype, &buftype_is_contig);
     ADIOI_Datatype_iscontig(fd->filetype, &filetype_is_contig);
 
@@ -102,6 +91,12 @@ void ADIOI_PVFS2_OldWriteStrided(ADIO_File fd, const void *buf, int count,
     bufsize = buftype_size * count;
 
     pvfs_fs = (ADIOI_PVFS2_fs*)fd->fs_ptr;
+
+    /* XXX: not sure how fine grained we can make the atomic locks.  need to
+     * brush up on what the standard gaurantees.  Locking here will be safe
+     * XXX: be sure to unlock at every exit path */
+    if (fd->atomicity)
+	ADIOI_WRITE_LOCK(fd, offset, SEEK_SET, 0);
 
     if (!buftype_is_contig && filetype_is_contig) {
 
@@ -233,6 +228,8 @@ void ADIOI_PVFS2_OldWriteStrided(ADIO_File fd, const void *buf, int count,
 #endif
 
 	ADIOI_Delete_flattened(datatype);
+	if (fd->atomicity)
+	    ADIOI_UNLOCK(fd, file_offsets, SEEK_SET, 0);
 	return;
     } /* if (!buftype_is_contig && filetype_is_contig) */
 
@@ -697,6 +694,8 @@ void ADIOI_PVFS2_OldWriteStrided(ADIO_File fd, const void *buf, int count,
 		    (new_buffer_write < flat_file->blocklens[0])) )
 	{
 	    ADIOI_Delete_flattened(datatype);
+	    if (fd->atomicity)
+		ADIOI_UNLOCK(fd, initial_off, SEEK_SET, 0);
 	    ADIOI_GEN_WriteStrided_naive(fd, buf, count, datatype,
 		    file_ptr_type, initial_off, status, error_code);
 	    return;
@@ -955,6 +954,8 @@ void ADIOI_PVFS2_OldWriteStrided(ADIO_File fd, const void *buf, int count,
     *error_code = MPI_SUCCESS;
 
 error_state:
+    if (fd->atomicity)
+	ADIOI_UNLOCK(fd, offset, SEEK_SET, 0);
     fd->fp_sys_posn = -1;   /* set it to null. */
 
 #ifdef HAVE_STATUS_SET_BYTES

@@ -126,6 +126,10 @@ MPI_File ADIO_Open(MPI_Comm orig_comm,
      * (e.g. Blue Gene) more efficent */
     fd->io_buf = ADIOI_Malloc(fd->hints->cb_buffer_size);
 
+    /* create RMA-based mutexes for atomic and shared fp modes */
+    ADIOI_MPIMUTEX_Create(0, fd->comm, &(fd->atomic_mutex));
+    ADIOI_MPIMUTEX_Create(0, fd->comm, &(fd->fp_mutex));
+
      /* deferred open: 
      * we can only do this optimization if 'fd->hints->deferred_open' is set
      * (which means the user hinted 'no_indep_rw' and collective buffering).

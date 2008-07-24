@@ -48,6 +48,7 @@ int MPI_File_seek_shared(MPI_File fh, MPI_Offset offset, int whence)
     /* --BEGIN ERROR HANDLING-- */
     MPIO_CHECK_FILE_HANDLE(adio_fh, myname, error_code);
     MPIO_CHECK_NOT_SEQUENTIAL_MODE(adio_fh, myname, error_code);
+    /* code here to pick a syncronization method */
     MPIO_CHECK_FS_SUPPORTS_SHARED(adio_fh, myname, error_code);
     /* --END ERROR HANDLING-- */
 

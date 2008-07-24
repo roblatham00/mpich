@@ -44,8 +44,8 @@ int MPI_File_read_ordered_begin(MPI_File fh, void *buf, int count,
 {
     int error_code,  nprocs, myrank;
     MPI_Count datatype_size;
-    int source, dest;
-    ADIO_Offset shared_fp, incr;
+    int source, dest, dummy;
+    ADIO_Offset shared_fp, new_shared_fp=0, incr;
     ADIO_File adio_fh;
     static char myname[] = "MPI_FILE_READ_ORDERED_BEGIN";
     void *xbuf=NULL, *e32_buf=NULL;
@@ -75,6 +75,7 @@ int MPI_File_read_ordered_begin(MPI_File fh, void *buf, int count,
     MPI_Type_size_x(datatype, &datatype_size);
     /* --BEGIN ERROR HANDLING-- */
     MPIO_CHECK_INTEGRAL_ETYPE(adio_fh, count, datatype_size, myname, error_code);
+    /* pick different syncronization methods */
     MPIO_CHECK_FS_SUPPORTS_SHARED(adio_fh, myname, error_code);
     MPIO_CHECK_COUNT_SIZE(adio_fh, count, datatype_size, myname, error_code);
     /* --END ERROR HANDLING-- */
@@ -85,6 +86,29 @@ int MPI_File_read_ordered_begin(MPI_File fh, void *buf, int count,
     MPI_Comm_rank(adio_fh->comm, &myrank);
 
     incr = (count*datatype_size)/adio_fh->etype_size;
+
+    /* split collective version isn't very non blocky.  This looks a lot like
+     * the read version: use the "ordered mode with RMA operations" algortithm
+     * outlined in the shared fp paper */
+
+    if (myrank == 0) {
+	    ADIOI_MPIMUTEX_Get(adio_fh->fp_mutex, &shared_fp);
+	    MPI_Scan(&shared_fp, &new_shared_fp, 1, MPI_INT, MPI_SUM,
+			    MPI_COMM_WORLD);
+    } else {
+	    MPI_Scan(&incr, &new_shared_fp, 1, MPI_INT, MPI_SUM,
+			    MPI_COMM_WORLD);
+    }
+    if (myrank == nprocs - 1) {
+	    ADIOI_MPIMUTEX_Set(adio_fh->fp_mutex, new_shared_fp + incr);
+    }
+
+    /* weak syncronization to prevent one process from racing ahead before rank
+     * N-1 has updated shared fp value */
+    MPI_Bcast(&dummy, 1, MPI_INT, nprocs -1, adio_fh->comm);
+
+
+#if 0
     /* Use a message as a 'token' to order the operations */
     source = myrank - 1;
     dest   = myrank + 1;
@@ -114,6 +138,7 @@ int MPI_File_read_ordered_begin(MPI_File fh, void *buf, int count,
         e32_buf = ADIOI_Malloc(e32_size*count);
 	xbuf = e32_buf;
     }
+#endif
 
 
     ADIO_ReadStridedColl(adio_fh, xbuf, count, datatype, ADIO_EXPLICIT_OFFSET,

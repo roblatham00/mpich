@@ -80,6 +80,7 @@ int MPI_File_read_shared(MPI_File fh, void *buf, int count,
     /* --BEGIN ERROR HANDLING-- */
     MPIO_CHECK_INTEGRAL_ETYPE(adio_fh, count, datatype_size, myname, error_code);
     MPIO_CHECK_READABLE(adio_fh, myname, error_code);
+    /* adjust shared file pointer methods acording to supported sync options */
     MPIO_CHECK_FS_SUPPORTS_SHARED(adio_fh, myname, error_code);
     /* --END ERROR HANDLING-- */
 

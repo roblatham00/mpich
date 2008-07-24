@@ -42,8 +42,12 @@ void ADIOI_PVFS2_Fcntl(ADIO_File fd, int flag, ADIO_Fcntl_t *fcntl_struct,
 	ADIOI_GEN_Prealloc(fd, fcntl_struct->diskspace, error_code);
 	break;
 
-    /* --BEGIN ERROR HANDLING-- */
     case ADIO_FCNTL_SET_ATOMICITY:
+	fd->atomicity = (fcntl_struct->atomicity == 0) ? 0 : 1;
+	*error_code = MPI_SUCCESS;
+	break;
+
+    /* --BEGIN ERROR HANDLING-- */
     default:
 	*error_code = MPIO_Err_create_code(MPI_SUCCESS,
 					   MPIR_ERR_RECOVERABLE,

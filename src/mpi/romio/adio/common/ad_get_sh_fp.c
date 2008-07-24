@@ -28,6 +28,17 @@ void ADIO_Get_shared_fp(ADIO_File fd, ADIO_Offset incr, ADIO_Offset *shared_fp,
     */
     *shared_fp = 0;
 
+    /* Instead of initializing shared file pointers in ADIO_Open, could defer
+     * initialization to this point */
+    /* even if we have an incr of 0, still need to do the full locking protocol
+     * so as to ensure we get a consistent value */
+    ADIOI_MPIMUTEX_Fetch_and_increment(fd->fp_mutex, shared_fp, incr);
+
+    *error_code = MPI_SUCCESS; /* XXX: need to set error codes in mutex calls */
+
+/* XXX: this needs to be configurable somehow: environment variable, hint, or
+ * some other way to request it  */
+#if 0
 #ifdef ROMIO_NFS
     if (fd->file_system == ADIO_NFS) {
 	ADIOI_NFS_Get_shared_fp(fd, incr, shared_fp, error_code);
@@ -71,4 +82,5 @@ void ADIO_Get_shared_fp(ADIO_File fd, ADIO_Offset incr, ADIO_Offset *shared_fp,
 		    MPI_BYTE, ADIO_EXPLICIT_OFFSET, 0, &status, error_code);
 done:
     ADIOI_UNLOCK(fd->shared_fp_fd, 0, SEEK_SET, sizeof(ADIO_Offset));
+#endif
 }

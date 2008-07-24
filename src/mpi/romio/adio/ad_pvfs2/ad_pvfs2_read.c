@@ -60,6 +60,9 @@ void ADIOI_PVFS2_ReadContig(ADIO_File fd, void *buf, int count,
 #ifdef ADIOI_MPE_LOGGING
     MPE_Log_event( ADIOI_MPE_read_a, 0, NULL );
 #endif
+    if (fd->atomicity)
+	ADIOI_READ_LOCK(fd, ofset, SEEK_SET, 0);
+
     ret = PVFS_sys_read(pvfs_fs->object_ref, file_req, offset, buf, 
 			mem_req, &(pvfs_fs->credentials), &resp_io);
 #ifdef ADIOI_MPE_LOGGING
@@ -88,6 +91,8 @@ void ADIOI_PVFS2_ReadContig(ADIO_File fd, void *buf, int count,
 
     *error_code = MPI_SUCCESS;
 fn_exit:
+    if (fd->atomicity)
+	    ADIOI_UNLOCK(fd, offset, SEEK_SET, 0);
     PVFS_Request_free(&mem_req);
     PVFS_Request_free(&file_req);
     return;

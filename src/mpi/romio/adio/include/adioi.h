@@ -817,8 +817,15 @@ int MPIOI_File_iread_all(MPI_File fh,
             char *myname,
             MPI_Request *request);
 
+/* MPI-2 One-sided RMA-based locks */
+#define ADIOI_WRITE_LOCK(fd, offset, whence, len) \
+	ADIOI_MPIMUTEX_Lock(fd->atomic_mutex)
+#define ADIOI_UNLOCK(fd, offset, whence, len) \
+	ADIOI_MPIMUTEX_Unlock(fd->atomic_mutex)
+#define ADIOI_READ_LOCK(fd, offset, whence, len) \
+	ADIOI_MPIMUTEX_Lock(fd->atomic_mutex)
 
-
+#if 0
 /* Unix-style file locking */
 
 #if (defined(ROMIO_HFS) || defined(ROMIO_XFS))
@@ -874,6 +881,7 @@ int MPIOI_File_iread_all(MPI_File fh,
           ADIOI_Set_lock((fd)->fd_sys, F_SETLK, F_UNLCK, offset, whence, len)
 #endif
 
+#endif
 #endif
 
 int ADIOI_Set_lock(FDTYPE fd_sys, int cmd, int type, ADIO_Offset offset, int whence, ADIO_Offset len);

@@ -86,6 +86,8 @@ void ADIOI_PVFS2_OldReadStrided(ADIO_File fd, void *buf, int count,
     bufsize = buftype_size * count;
     
     pvfs_fs = (ADIOI_PVFS2_fs*)fd->fs_ptr;
+    if (fd->atomicity)
+	ADIOI_READ_LOCK(fd, offset, SEEK_SET, 0);
 
     if (!buftype_is_contig && filetype_is_contig) {
 
@@ -175,6 +177,8 @@ void ADIOI_PVFS2_OldReadStrided(ADIO_File fd, void *buf, int count,
 	    } /* for (i=0; i<flat_buf->count; i++) */
 	    j++;
 	} /* while (b_blks_read < total_blks_to_read) */
+	if (fd->atomicity)
+	    ADIOI_UNLOCK(fd, offset, SEEK_SET, 0);
 	ADIOI_Free(mem_offsets);
 	ADIOI_Free(mem_lengths);
 
@@ -650,6 +654,8 @@ void ADIOI_PVFS2_OldReadStrided(ADIO_File fd, void *buf, int count,
 		    (new_buffer_read < flat_file->blocklens[0])) )
 	{
 
+	    if (fd->atomicity)
+		ADIOI_UNLOCK(fd, offset, SEEK_SET, 0);
 	    ADIOI_Delete_flattened(datatype);
 	    ADIOI_GEN_ReadStrided_naive(fd, buf, count, datatype,
 		    file_ptr_type, initial_off, status, error_code);
@@ -899,6 +905,8 @@ void ADIOI_PVFS2_OldReadStrided(ADIO_File fd, void *buf, int count,
     if (err_flag == 0) *error_code = MPI_SUCCESS;
 
 error_state:
+    if (fd->atomicity)
+	ADIOI_UNLOCK(fd, offset, SEEK_SET, 0);
     fd->fp_sys_posn = -1;   /* set it to null. */
 
 #ifdef HAVE_STATUS_SET_BYTES

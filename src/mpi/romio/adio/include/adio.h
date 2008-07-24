@@ -180,6 +180,7 @@ int fsync(int fd);
 int ftruncate(int fd, off_t length);
 # endif
 
+#include "mpimutex.h"
 
 typedef struct ADIOI_Fns_struct ADIOI_Fns;
 typedef struct ADIOI_Hints_struct ADIOI_Hints;
@@ -229,6 +230,8 @@ typedef struct ADIOI_FileD {
     int atomicity;          /* true=atomic, false=nonatomic */
     int fortran_handle;     /* handle for Fortran interface if needed */
     MPI_Errhandler err_handler;
+    mpimutex_t atomic_mutex; /* RMA-based mutex for atomic mode ops */
+    mpimutex_t fp_mutex;  /* RMA-based mutex for shared fp ops */
     void *fs_ptr;            /* file-system specific information */
 
     /* Two phase collective I/O support */

@@ -49,9 +49,9 @@ int MPI_File_write_ordered(MPI_File fh, ROMIO_CONST void *buf, int count,
     int error_code, nprocs, myrank;
     ADIO_Offset incr;
     MPI_Count datatype_size;
-    int source, dest;
+    int source, dest, dummy;
     static char myname[] = "MPI_FILE_WRITE_ORDERED";
-    ADIO_Offset shared_fp;
+    ADIO_Offset shared_fp=0, new_shared_fp=0;
     ADIO_File adio_fh;
     void *e32buf=NULL;
     const void *xbuf;
@@ -80,6 +80,29 @@ int MPI_File_write_ordered(MPI_File fh, ROMIO_CONST void *buf, int count,
     MPI_Comm_rank(adio_fh->comm, &myrank);
 
     incr = (count*datatype_size)/adio_fh->etype_size;
+
+    /* use the "ordered mode with RMA operations" algorithm outlined in the
+     * shared file pointer paper: rank 0 gets its offset value from the RMA
+     * window.  all other ranks know their offset after MPI_Scan */
+
+    if (myrank == 0) {
+	    ADIOI_MPIMUTEX_Get(adio_fh->fp_mutex, &shared_fp);
+	    MPI_Scan(&shared_fp, &new_shared_fp, 1, MPI_INT, MPI_SUM,
+			    MPI_COMM_WORLD);
+    } else {
+	    MPI_Scan( &incr, &new_shared_fp, 1, MPI_INT, MPI_SUM,
+			    MPI_COMM_WORLD);
+	    shared_fp = new_shared_fp;
+    }
+    if (myrank == nprocs - 1) {
+	    ADIOI_MPIMUTEX_Set(adio_fh->fp_mutex, new_shared_fp + incr);
+    }
+
+    /* weak syncronization to prevent one process from racing ahead before rank
+     * N-1 has updated shared fp value */
+    MPI_Bcast(&dummy, 1, MPI_INT, nprocs -1, adio_fh->comm);
+
+#if 0
     /* Use a message as a 'token' to order the operations */
     source = myrank - 1;
     dest   = myrank + 1;
@@ -109,6 +132,7 @@ int MPI_File_write_ordered(MPI_File fh, ROMIO_CONST void *buf, int count,
 
 	xbuf = e32buf;
     }
+#endif
 
     ADIO_WriteStridedColl(adio_fh, xbuf, count, datatype, ADIO_EXPLICIT_OFFSET,
                           shared_fp, status, &error_code);

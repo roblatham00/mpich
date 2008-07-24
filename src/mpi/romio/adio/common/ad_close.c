@@ -61,6 +61,9 @@ void ADIO_Close(ADIO_File fd, int *error_code)
 	ADIOI_Ftable[fd->fortran_handle] = MPI_FILE_NULL;
     }
 
+    ADIOI_MPIMUTEX_Free(&(fd->atomic_mutex));
+    ADIOI_MPIMUTEX_Free(&(fd->fp_mutex));
+
     if (fd->hints && fd->hints->ranklist) ADIOI_Free(fd->hints->ranklist);
     if (fd->hints && fd->hints->cb_config_list) ADIOI_Free(fd->hints->cb_config_list);
 

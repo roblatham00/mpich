@@ -149,6 +149,7 @@ int MPIOI_File_read(MPI_File fh,
 
         /* if atomic mode requested, lock (exclusive) the region, because
            there could be a concurrent noncontiguous request.
+           there could be a concurrent noncontiguous request.
 	 */
         if ((adio_fh->atomicity) && ADIO_Feature(adio_fh, ADIO_LOCKS)) {
             ADIOI_WRITE_LOCK(adio_fh, off, SEEK_SET, bufsize);

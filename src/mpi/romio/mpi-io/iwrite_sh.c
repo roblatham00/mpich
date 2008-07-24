@@ -69,8 +69,9 @@ int MPI_File_iwrite_shared(MPI_File fh, ROMIO_CONST void *buf, int count,
 
     /* --BEGIN ERROR HANDLING-- */
     MPIO_CHECK_INTEGRAL_ETYPE(adio_fh, count, datatype_size, myname, error_code);
-    MPIO_CHECK_FS_SUPPORTS_SHARED(adio_fh, myname, error_code);
     MPIO_CHECK_COUNT_SIZE(adio_fh, count, datatype_size, myname, error_code);
+    /* some sort of shared file pointer handling here */
+    MPIO_CHECK_FS_SUPPORTS_SHARED(adio_fh, myname, error_code);
     /* --END ERROR HANDLING-- */
 
     ADIOI_Datatype_iscontig(datatype, &buftype_is_contig);

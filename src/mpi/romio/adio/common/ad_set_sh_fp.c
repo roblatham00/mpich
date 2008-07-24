@@ -13,6 +13,13 @@ void ADIOI_NFS_Set_shared_fp(ADIO_File fd, ADIO_Offset offset, int *error_code);
 
 void ADIO_Set_shared_fp(ADIO_File fd, ADIO_Offset offset, int *error_code)
 {
+
+	/* like with ADIO_Get_shared_fp, could maybe defer initialization to
+	 * this point */
+	ADIOI_MPIMUTEX_Set(fd->fp_mutex, offset);
+	*error_code = MPI_SUCCESS; /* deal with errors in mutex code */
+
+#if 0
     ADIO_Status status;
     MPI_Comm dupcommself;
 
@@ -41,5 +48,6 @@ void ADIO_Set_shared_fp(ADIO_File fd, ADIO_Offset offset, int *error_code)
     ADIO_WriteContig(fd->shared_fp_fd, &offset, sizeof(ADIO_Offset), 
 		     MPI_BYTE, ADIO_EXPLICIT_OFFSET, 0, &status, error_code);
     ADIOI_UNLOCK(fd->shared_fp_fd, 0, SEEK_SET, sizeof(ADIO_Offset));
+#endif
 }
 
