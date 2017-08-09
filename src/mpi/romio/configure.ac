@@ -187,7 +187,7 @@ dnl An m4 macro for use with m4_foreach_w and friends.  You should modify this
 dnl list if you want to add a known file system.  The list is just whitespace
 dnl separated, so you can use newlines and tabs as well.
 m4_define([known_filesystems_m4_w],
-          [nfs ufs pvfs2 testfs xfs panfs lustre gpfs ime])dnl
+          [nfs ufs pvfs2 testfs xfs panfs lustre gpfs ime logfs])dnl
 dnl
 dnl An m4 macro for use with m4_foreach and friends.  Expands to a quoted list of
 dnl quoted elements.  A bit easier to use without unintended expansion than the
@@ -909,6 +909,12 @@ fi
 
 # Add conditional compilation of Lustre lockahead sources
 AM_CONDITIONAL([LUSTRE_LOCKAHEAD],[test "$lustre_lockahead" = "yes"])
+
+if test -n "$file_system_logfs"; then
+    AC_CHECK_HEADERS(logfs.h,
+        AC_DEFINE(ROMIO_LOGFS,1,[Define for ROMIO with LogFS]),
+        AC_MSG_ERROR([LogFS support requested but cannot fine logfs.h header file]) )
+fi
 
 if test -n "$file_system_xfs"; then
     AC_DEFINE(ROMIO_XFS,1,[Define for ROMIO with XFS])
