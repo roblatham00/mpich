@@ -911,9 +911,9 @@ fi
 AM_CONDITIONAL([LUSTRE_LOCKAHEAD],[test "$lustre_lockahead" = "yes"])
 
 if test -n "$file_system_logfs"; then
-    AC_CHECK_HEADERS(logfs.h,
-        AC_DEFINE(ROMIO_LOGFS,1,[Define for ROMIO with LogFS]),
-        AC_MSG_ERROR([LogFS support requested but cannot fine logfs.h header file]) )
+    dnl can't use AC_CHECK_HEADER for logfs.h because it needs to be
+    dnl compiled with an mpi compiler
+    AC_DEFINE(ROMIO_LOGFS,1,[Define for ROMIO with LogFS])
 fi
 
 if test -n "$file_system_xfs"; then
