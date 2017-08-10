@@ -849,6 +849,7 @@ int ADIOI_Set_lock64(FDTYPE fd_sys, int cmd, int type, ADIO_Offset offset, int w
 
 int ADIOI_Strncpy(char *outstr, const char *instr, size_t maxlen);
 char *ADIOI_Strdup(const char *);
+char *ADIOI_Strlower(char *str);
 
 /* the current MPI standard is not const-correct, and modern compilers warn
  * about the following sort of code:

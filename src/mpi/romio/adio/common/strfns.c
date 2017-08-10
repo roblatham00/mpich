@@ -102,3 +102,18 @@ char *ADIOI_Strdup(const char *str)
     }
     return save_p;
 }
+
+/*
+ * Convert string to lowercase
+ * Converts inplace, returns pointer to str
+ */
+char *ADIOI_Strlower(char *str)
+{
+    if (!str)
+        return str;
+    while (*str) {
+        *str = tolower(*str);
+        str++;
+    }
+    return str;
+}
