@@ -5,7 +5,12 @@
 ##     See COPYRIGHT in top-level directory.
 ##
 
+if BUILD_MPI_DATATYPE_DATALOOP
 include $(top_srcdir)/src/mpi/datatype/dataloop/Makefile.mk
+endif BUILD_MPI_DATATYPE_DATALOOP
+if BUILD_MPI_DATATYPE_DAME
+include $(top_srcdir)/src/mpi/datatype/dame/Makefile.mk
+endif BUILD_MPI_DATATYPE_DAME
 
 # for datatype.h, which is included by some other dirs
 AM_CPPFLAGS += -I$(top_srcdir)/src/mpi/datatype

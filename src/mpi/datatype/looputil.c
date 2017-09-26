@@ -7,10 +7,17 @@
 
 #include "mpiimpl.h"
 #include "datatype.h"
+#ifdef WITH_DAME
+#include "mpir_dame.h"
+#else
 #include "mpir_dataloop.h"
+#endif /* WITH_DAME */
 #include "looputil.h"
 #include "veccpy.h"
 
+#ifdef WITH_DAME
+
+#else
 /* MPIR_Segment_piece_params
  *
  * This structure is used to pass function-specific parameters into our
@@ -824,6 +831,7 @@ static int MPII_Segment_contig_unpack_external32_to_buf(DLOOP_Offset * blocks_p,
     MPIR_FUNC_VERBOSE_EXIT(MPIR_STATE_MPID_SEGMENT_CONTIG_UNPACK_EXTERNAL32_TO_BUF);
     return 0;
 }
+#endif /* WITH_DAME */
 
 #undef FUNCNAME
 #define FUNCNAME MPIR_Segment_pack_external32
@@ -832,6 +840,10 @@ static int MPII_Segment_contig_unpack_external32_to_buf(DLOOP_Offset * blocks_p,
 void MPIR_Segment_pack_external32(struct DLOOP_Segment *segp,
                                   DLOOP_Offset first, DLOOP_Offset * lastp, void *pack_buffer)
 {
+#ifdef WITH_DAME
+    fprintf(stderr, "Segment_pack_external32 unimplemented for DAME\n");
+    MPIR_Assert(0);
+#else
     struct MPIR_Segment_piece_params pack_params;
     MPIR_FUNC_VERBOSE_STATE_DECL(MPIR_STATE_MPID_SEGMENT_PACK_EXTERNAL);
 
@@ -844,6 +856,8 @@ void MPIR_Segment_pack_external32(struct DLOOP_Segment *segp,
                             MPII_Datatype_get_basic_size_external32, &pack_params);
 
     MPIR_FUNC_VERBOSE_EXIT(MPIR_STATE_MPID_SEGMENT_PACK_EXTERNAL);
+#endif /* WITH_DAME */
+
     return;
 }
 
@@ -855,6 +869,10 @@ void MPIR_Segment_unpack_external32(struct DLOOP_Segment *segp,
                                     DLOOP_Offset first,
                                     DLOOP_Offset * lastp, DLOOP_Buffer unpack_buffer)
 {
+#ifdef WITH_DAME
+    fprintf(stderr, "Segment_unpack_external32 unimplemented for DAME\n");
+    MPIR_Assert(0);
+#else
     struct MPIR_Segment_piece_params pack_params;
     MPIR_FUNC_VERBOSE_STATE_DECL(MPIR_STATE_MPID_SEGMENT_UNPACK_EXTERNAL32);
 
@@ -867,6 +885,8 @@ void MPIR_Segment_unpack_external32(struct DLOOP_Segment *segp,
                             MPII_Datatype_get_basic_size_external32, &pack_params);
 
     MPIR_FUNC_VERBOSE_EXIT(MPIR_STATE_MPID_SEGMENT_UNPACK_EXTERNAL32);
+#endif /* WITH_DAME */
+
     return;
 }
 
@@ -923,6 +943,192 @@ void MPIR_Type_release_contents(MPI_Datatype type,
     return;
 }
 
+#ifdef WITH_DAME
+
+/* This means that we are trying to resume from a different point than
+   from where we left off. To get this right, we pretend to pack the
+   IOV without actually packing it until we get "to" the starting point
+   for this call
+*/
+static void MPIR_Segment_reposition(DAME_Segment * segp,
+                                    DAME_Offset first, const DAME_Dame * dl, int isbuiltin)
+{
+    MPI_Aint tmplast = first - segp->in_offset[SEGMENT_PACK_IOV_IDX];
+    MPI_Aint tmptotalcopied = 0;
+    int tmptotaliovs = 0;
+
+    DL_pack_iov(segp->ptr + segp->in_offset[SEGMENT_PACK_IOV_IDX], NULL,
+                tmplast, INT_MAX, 0,
+                dl, isbuiltin, &segp->state[SEGMENT_PACK_IOV_IDX], &tmptotalcopied, &tmptotaliovs);
+
+    return;
+}
+
+#undef FUNCNAME
+#define FUNCNAME MPIR_Segment_pack_vector
+#undef FCNAME
+#define FCNAME MPL_QUOTE(FUNCNAME)
+/* MPIR_Segment_pack_vector
+*
+* Parameters:
+* segp    - pointer to segment structure
+* first   - first byte in segment to pack
+* lastp   - in/out parameter describing last byte to pack (and afterwards
+*           the last byte _actually_ packed)
+*           NOTE: actually returns index of byte _after_ last one packed
+* vectorp - pointer to (off, len) pairs to fill in
+* lengthp - in/out parameter describing length of array (and afterwards
+*           the amount of the array that has actual data)
+*/
+void MPIR_Segment_pack_vector(struct DAME_Segment *segp,
+                              DAME_Offset first,
+                              DAME_Offset * lastp, DAME_VECTOR * vectorp, int *lengthp)
+{
+    MPIR_FUNC_VERBOSE_STATE_DECL(MPID_STATE_MPIR_SEGMENT_PACK_VECTOR);
+
+    MPIR_FUNC_VERBOSE_ENTER(MPID_STATE_MPIR_SEGMENT_PACK_VECTOR);
+
+    /* TODO: TLP: Use max(size_t) */
+    size_t outSize = LONG_MAX;
+    if (*lastp != SEGMENT_IGNORE_LAST)
+        outSize = (*lastp - first);
+
+    DAME_Offset size, extent;
+    DAME_Handle_get_size_macro(segp->handle, size);
+    DAME_Handle_get_extent_macro(segp->handle, extent);
+
+    DAME_Offset totalcopied = 0;
+    int totaliovs = 0;
+
+    DAME_Dame *dl = NULL;
+    DAME_Handle_get_loopptr_macro(segp->handle, dl);
+
+    if (!dl) {
+        /* TODO: If no dataloop is defined, it should be a basic type for which
+         * size == extent. Need to confirm this though */
+        MPIR_Assert(size == extent);
+        DAME_Dame defDL[3];
+        defDL[0].kind = DL_EXIT;
+        defDL[1].kind = DL_CONTIGFINAL;
+        defDL[1].count = segp->count;
+        defDL[1].size = size * segp->count;
+        defDL[1].extent = extent;
+        defDL[1].s.c_t.basesize = size;
+        defDL[1].s.c_t.baseextent = extent;
+        defDL[2].kind = DL_BOTTOM;
+
+        if (segp->in_offset[SEGMENT_PACK_IOV_IDX] != first) {
+            MPIR_Segment_reposition(segp, first, defDL, 1);
+            segp->in_offset[SEGMENT_PACK_IOV_IDX] = first;
+        }
+
+        DL_pack_iov(segp->ptr + segp->in_offset[SEGMENT_PACK_IOV_IDX], vectorp,
+                    outSize, *lengthp, 0,
+                    defDL, 1, &segp->state[SEGMENT_PACK_IOV_IDX], &totalcopied, &totaliovs);
+        segp->curcount[SEGMENT_PACK_IOV_IDX] = totalcopied / size;
+        segp->in_offset[SEGMENT_PACK_IOV_IDX] += (segp->curcount[SEGMENT_PACK_IOV_IDX] * size);
+
+        goto exit;
+    }
+
+    if (segp->in_offset[SEGMENT_PACK_IOV_IDX] != first) {
+        MPIR_Segment_reposition(segp, first, dl, 0);
+        segp->in_offset[SEGMENT_PACK_IOV_IDX] = first;
+    }
+
+    DAME_Count i;
+    DAME_Count start = segp->curcount[SEGMENT_PACK_IOV_IDX];
+    for (i = segp->curcount[SEGMENT_PACK_IOV_IDX]; i < segp->count; i++) {
+        int rv;
+        DAME_Offset copied = 0;
+        int iovs = 0;
+        DAME_Offset outsz = outSize - totalcopied;
+        int outslots = *lengthp - totaliovs;
+
+        rv = DL_pack_iov(segp->ptr + segp->in_offset[SEGMENT_PACK_IOV_IDX],
+                         vectorp + totaliovs,
+                         outsz,
+                         outslots,
+                         segp->curcount[SEGMENT_PACK_IOV_IDX] != start,
+                         dl, 0, &segp->state[SEGMENT_PACK_IOV_IDX], &copied, &iovs);
+
+        totalcopied += copied;
+        totaliovs += iovs;
+        /* TODO: TLP: Use the MPICH error handling */
+        switch (rv) {
+            case DAME_PACKUNPACK_COMPLETED:
+                break;
+            case DAME_PACKUNPACK_PARTIAL:
+                segp->curcount[SEGMENT_PACK_IOV_IDX] = i;
+                goto exit;
+                break;
+            default:
+                fprintf(stderr, "*** ERROR in pack(%d)\n", rv);
+                MPIR_Assert(0);
+        }
+
+        segp->in_offset[SEGMENT_PACK_IOV_IDX] += extent;
+    }
+
+  exit:
+    *lastp = first + totalcopied;
+    *lengthp = totaliovs;
+
+    MPIR_FUNC_VERBOSE_EXIT(MPID_STATE_MPIR_SEGMENT_PACK_VECTOR);
+
+    return;
+}
+
+
+/* MPIR_Segment_unpack_vector
+*
+* Q: Should this be any different from pack vector?
+*/
+#undef FUNCNAME
+#define FUNCNAME MPIR_Segment_unpack_vector
+#undef FCNAME
+#define FCNAME MPL_QUOTE(FUNCNAME)
+void MPIR_Segment_unpack_vector(struct DLOOP_Segment *segp,
+                                DLOOP_Offset first,
+                                DLOOP_Offset * lastp, DLOOP_VECTOR * vectorp, int *lengthp)
+{
+    MPIR_FUNC_VERBOSE_STATE_DECL(MPID_STATE_MPIR_SEGMENT_UNPACK_VECTOR);
+    MPIR_FUNC_VERBOSE_ENTER(MPID_STATE_MPIR_SEGMENT_UNPACK_VECTOR);
+
+    MPIR_Segment_pack_vector(segp, first, lastp, vectorp, lengthp);
+
+    MPIR_FUNC_VERBOSE_EXIT(MPID_STATE_MPIR_SEGMENT_UNPACK_VECTOR);
+
+    return;
+}
+
+#undef FUNCNAME
+#define FUNCNAME MPIR_Segment_flatten
+#undef FCNAME
+#define FCNAME MPL_QUOTE(FUNCNAME)
+/* MPIR_Segment_flatten
+*
+* offp    - pointer to array to fill in with offsets
+* sizep   - pointer to array to fill in with sizes
+* lengthp - pointer to value holding size of arrays; # used is returned
+*
+* Internally, index is used to store the index of next array value to fill in.
+*
+* TODO: MAKE SIZES Aints IN ROMIO, CHANGE THIS TO USE INTS TOO.
+*/
+void MPIR_Segment_flatten(struct DLOOP_Segment *segp,
+                          DLOOP_Offset first,
+                          DLOOP_Offset * lastp,
+                          DLOOP_Offset * offp, DLOOP_Size * sizep, DLOOP_Offset * lengthp)
+{
+    fprintf(stderr, "MPIR_Segment_flatten unimplemented for DAME\n");
+    MPIR_Assert(0);
+
+    return;
+}
+
+#else
+
 #undef FUNCNAME
 #define FUNCNAME MPIR_Segment_pack_vector
 #undef FCNAME
@@ -961,6 +1167,7 @@ void MPIR_Segment_pack_vector(struct DLOOP_Segment *segp,
     /* last value already handled by MPIR_Segment_manipulate */
     *lengthp = packvec_params.u.pack_vector.index;
     MPIR_FUNC_VERBOSE_EXIT(MPID_STATE_MPIR_SEGMENT_PACK_VECTOR);
+
     return;
 }
 
@@ -983,6 +1190,7 @@ void MPIR_Segment_unpack_vector(struct DLOOP_Segment *segp,
     MPIR_Segment_pack_vector(segp, first, lastp, vectorp, lengthp);
 
     MPIR_FUNC_VERBOSE_EXIT(MPID_STATE_MPIR_SEGMENT_UNPACK_VECTOR);
+
     return;
 }
 
@@ -1023,6 +1231,7 @@ void MPIR_Segment_flatten(struct DLOOP_Segment *segp,
     /* last value already handled by MPIR_Segment_manipulate */
     *lengthp = packvec_params.u.flatten.index;
     MPIR_FUNC_VERBOSE_EXIT(MPID_STATE_MPIR_SEGMENT_FLATTEN);
+
     return;
 }
 
@@ -1317,3 +1526,5 @@ static int MPII_Segment_vector_flatten(DLOOP_Offset * blocks_p, DLOOP_Count coun
     MPIR_FUNC_VERBOSE_EXIT(MPID_STATE_MPIR_SEGMENT_VECTOR_FLATTEN);
     return 0;
 }
+
+#endif /* WITH_DAME */

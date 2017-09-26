@@ -71,9 +71,17 @@ int MPIR_Type_contiguous(int count, MPI_Datatype oldtype, MPI_Datatype * newtype
     new_dtp->name[0] = 0;
     new_dtp->contents = NULL;
 
+#ifdef WITH_DAME
+    new_dtp->dataloop = NULL;
+    new_dtp->compact_dataloop = NULL;
+    new_dtp->dataloop_size = 0;
+    new_dtp->dataloop_depth = -1;
+#else
     new_dtp->dataloop = NULL;
     new_dtp->dataloop_size = -1;
     new_dtp->dataloop_depth = -1;
+#endif /* WITH_DAME */
+
     new_dtp->hetero_dloop = NULL;
     new_dtp->hetero_dloop_size = -1;
     new_dtp->hetero_dloop_depth = -1;

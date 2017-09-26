@@ -34,6 +34,15 @@ static char *MPII_Datatype_depth_spacing(int depth) ATTRIBUTE((unused));
  */
 
 /* --BEGIN ERROR HANDLING-- */
+
+#ifdef WITH_DAME
+void MPII_Dataloop_dot_printf(MPIR_Dataloop * loop_p, int depth, int header)
+{
+    fprintf(stderr, "Dot output not implemented for Dame\n");
+    MPIR_Assert(0);
+}
+
+#else
 void MPII_Dataloop_dot_printf(MPIR_Dataloop * loop_p, int depth, int header)
 {
     int i;
@@ -213,6 +222,7 @@ void MPII_Dataloop_dot_printf(MPIR_Dataloop * loop_p, int depth, int header)
     }
     return;
 }
+#endif /* WITH_DAME */
 
 void MPII_Datatype_dot_printf(MPI_Datatype type, int depth, int header)
 {

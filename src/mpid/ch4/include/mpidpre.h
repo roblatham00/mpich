@@ -15,7 +15,11 @@
 #include <sys/types.h>
 #endif
 
+#ifdef WITH_DAME
+#include "mpir_dame.h"
+#else
 #include "mpir_dataloop.h"
+#endif
 #include "mpid_thread.h"
 #include "mpid_sched.h"
 #include "mpid_timers_fallback.h"

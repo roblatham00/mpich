@@ -82,7 +82,11 @@ static inline void fill_in_derived_dtp_info(MPIDI_RMA_dtype_info * dtype_info, v
     dtype_info->dataloop_size = dtp->dataloop_size;
     dtype_info->dataloop_depth = dtp->dataloop_depth;
     dtype_info->basic_type = dtp->basic_type;
+#ifdef WITH_DAME
+    dtype_info->dataloop = dtp->compact_dataloop;
+#else
     dtype_info->dataloop = dtp->dataloop;
+#endif
     dtype_info->ub = dtp->ub;
     dtype_info->lb = dtp->lb;
     dtype_info->true_ub = dtp->true_ub;
@@ -91,7 +95,11 @@ static inline void fill_in_derived_dtp_info(MPIDI_RMA_dtype_info * dtype_info, v
     dtype_info->has_sticky_lb = dtp->has_sticky_lb;
 
     MPIR_Assert(dataloop != NULL);
+#ifdef WITH_DAME
+    MPIR_Memcpy(dataloop, dtp->compact_dataloop, dtp->dataloop_size);
+#else
     MPIR_Memcpy(dataloop, dtp->dataloop, dtp->dataloop_size);
+#endif
     /* The dataloop can have undefined padding sections, so we need to let
      * valgrind know that it is OK to pass this data to writev later on. */
     MPL_VG_MAKE_MEM_DEFINED(dataloop, dtp->dataloop_size);

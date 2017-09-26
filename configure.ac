@@ -596,6 +596,12 @@ AC_ARG_WITH(name-publisher,
     [],
     with_namepublisher=$with_name_publisher,)
 
+AC_ARG_WITH(datatype,
+[  --with-datatype=name   Choose code used to handle MPI datatypes.
+                          Choices are:
+                             dataloop (default)
+                             dame],,with_datatype=dataloop)
+
 AC_ARG_ENABLE(dbg-nolocal, AC_HELP_STRING([--enable-dbg-nolocal], [enables debugging mode where shared-memory communication is disabled]),
     AC_DEFINE(ENABLED_NO_LOCAL, 1, [Define to disable shared-memory communication for debugging]))
 
@@ -2964,6 +2970,22 @@ fi
 export nameserv_name
 AM_CONDITIONAL([BUILD_NAMEPUB_FILE],[test "X$nameserv_name" = "Xfile"])
 AM_CONDITIONAL([BUILD_NAMEPUB_PMI],[test "X$nameserv_name" = "Xpmi"])
+
+# ----------------------------------------------------------------------------
+if test -n "$with_datatype" ; then
+   # Make sure that the selected version exists
+    if test -d "$use_top_srcdir/src/mpi/datatype/$with_datatype" ; then
+        :
+    else
+        AC_MSG_ERROR([Unknown datatype option $with_datatype])
+    fi
+fi
+if test "X$with_datatype" = "Xdame" ; then
+    AC_DEFINE([WITH_DAME],1,[Use DAME for datatype processing])
+fi
+AM_CONDITIONAL([BUILD_MPI_DATATYPE_DATALOOP],[test "X$with_datatype" = "Xdataloop"])
+AM_CONDITIONAL([BUILD_MPI_DATATYPE_DAME],[test "X$with_datatype" = "Xdame"])
+# ----------------------------------------------------------------------------
 
 # In case the documentation targets are used, find doctext and attempt to 
 # find the source for the doctext LaTeX style files.  Use "false" if

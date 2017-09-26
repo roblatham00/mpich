@@ -1124,9 +1124,13 @@ static int create_derived_datatype(MPIR_Request * req, MPIDI_RMA_dtype_info * dt
                           (dtype_info->dataloop));
 
     /* FIXME: Temp to avoid SEGV when memory tracing */
+#ifdef WITH_DAME
+    MPIR_Dame_update(new_dtp->dataloop, 0);
+#else
     new_dtp->hetero_dloop = 0;
 
     MPIR_Dataloop_update(new_dtp->dataloop, ptrdiff);
+#endif
 
     new_dtp->contents = NULL;
 

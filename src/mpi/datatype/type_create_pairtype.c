@@ -77,9 +77,16 @@ int MPIR_Type_create_pairtype(MPI_Datatype type, MPIR_Datatype * new_dtp)
     new_dtp->name[0] = 0;
     new_dtp->contents = NULL;
 
+#ifdef WITH_DAME
+    new_dtp->dataloop = NULL;
+    new_dtp->compact_dataloop = NULL;
+    new_dtp->dataloop_size = 0;
+    new_dtp->dataloop_depth = -1;
+#else
     new_dtp->dataloop = NULL;
     new_dtp->dataloop_size = -1;
     new_dtp->dataloop_depth = -1;
+#endif /* WITH_DAME */
     new_dtp->hetero_dloop = NULL;
     new_dtp->hetero_dloop_size = -1;
     new_dtp->hetero_dloop_depth = -1;
@@ -173,6 +180,12 @@ int MPIR_Type_create_pairtype(MPI_Datatype type, MPIR_Datatype * new_dtp)
      * type and then committing it, then the dataloop will be missing.
      */
 
+#ifdef WITH_DAME
+    err = MPIR_Dame_create_pairtype(type,
+                                    &new_dtp->dataloop,
+                                    &new_dtp->dataloop_size, &new_dtp->dataloop_depth);
+    new_dtp->dataloop[++new_dtp->dataloop_depth].kind = DL_BOTTOM;
+#else
 #ifdef MPID_NEEDS_DLOOP_ALL_BYTES
     /* If MPID implementation needs use to reduce everything to
      * a byte stream, do that. */
@@ -194,6 +207,8 @@ int MPIR_Type_create_pairtype(MPI_Datatype type, MPIR_Datatype * new_dtp)
                                             &(new_dtp->hetero_dloop_depth),
                                             MPIR_DATALOOP_HETEROGENEOUS);
     }
+#endif /* WITH_DAME */
+
 #ifdef MPID_Type_commit_hook
     if (!err) {
         err = MPID_Type_commit_hook(new_dtp);

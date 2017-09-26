@@ -130,12 +130,43 @@ struct MPIR_Datatype {
     /* pointer to contents and envelope data for the datatype */
     MPIR_Datatype_contents *contents;
 
+#ifdef WITH_DAME
+
+    /* The regular DAME "dataloop"
+     */
+    struct MPIR_Dataloop *dataloop;
+
+    /* This dataloop is a compact representation of the DAME program for this
+     * datatype which is optimized for transmission during RMA operations.
+     *
+     * IT ***CANNOT*** BE USED FOR PACK/UNPACK.
+     *
+     * The other member
+     * dataloop should be used for that. This dataloop should be converted to
+     * the non-compact form using Dataloop_update before using it for
+     * pack/unpack operations */
+    struct MPIR_Dataloop *compact_dataloop;
+
+    /* This is the size of the compacted Dataloop. It cannot be
+     * used to determine the size of the regular dataloop
+     */
+    MPI_Aint dataloop_size;
+
+    /* This is the depth of the "main" program in the DAME representation of
+     * this dataloop. If the datatype contains structs, the depth of the
+     * subprograms will be greater than this depth */
+    int dataloop_depth;
+
+#else
+
     /* dataloop members, including a pointer to the loop, the size in bytes,
      * and a depth used to verify that we can process it (limited stack depth
      */
     struct MPIR_Dataloop *dataloop;     /* might be optimized for homogenous */
     MPI_Aint dataloop_size;
     int dataloop_depth;
+
+#endif                          /* WITH_DAME */
 #if defined(MPID_HAS_HETERO) || 1
     struct MPIR_Dataloop *hetero_dloop; /* heterogeneous dataloop */
     MPI_Aint hetero_dloop_size;
@@ -523,6 +554,14 @@ static inline void MPIR_Datatype_free(MPIR_Datatype * ptr)
     if (ptr->contents) {
         MPIR_Datatype_free_contents(ptr);
     }
+#ifdef WITH_DAME
+    if (ptr->dataloop) {
+        MPIR_Dame_free(&(ptr->dataloop));
+    }
+    if (ptr->compact_dataloop) {
+        MPIR_Dame_free(&(ptr->compact_dataloop));
+    }
+#else
     if (ptr->dataloop) {
         MPIR_Dataloop_free(&(ptr->dataloop));
     }
@@ -531,6 +570,7 @@ static inline void MPIR_Datatype_free(MPIR_Datatype * ptr)
         MPIR_Dataloop_free(&(ptr->hetero_dloop));
     }
 #endif /* MPID_HAS_HETERO */
+#endif /* WITH_DAME */
     MPIR_Handle_obj_free(&MPIR_Datatype_mem, ptr);
 }
 
@@ -706,7 +746,7 @@ int MPIR_Type_get_contents(MPI_Datatype datatype, int max_integers, int max_addr
                            int max_datatypes, int array_of_integers[],
                            MPI_Aint array_of_addresses[], MPI_Datatype array_of_datatypes[]);
 int MPIR_Type_create_pairtype(MPI_Datatype datatype, MPIR_Datatype * new_dtp);
-int MPIR_Type_flatten(MPI_Datatype type, MPI_Aint * off_array, DLOOP_Size * size_array,
+int MPIR_Type_flatten(MPI_Datatype type, MPI_Aint * off_array, MPI_Aint * size_array,
                       MPI_Aint * array_len_p);
 
 /* debugging helper functions */
@@ -723,9 +763,15 @@ static inline MPI_Aint MPIR_Datatype_size_external32(MPI_Datatype type)
     } else {
         MPIR_Dataloop *dlp = NULL;
 
+#ifdef WITH_DAME
+        MPIR_Datatype_get_loopptr_macro(type, dlp, MPIR_DATALOOP_HETEROGENEOUS);
+
+        return MPIR_Dame_stream_size(dlp);
+#else
         MPIR_Datatype_get_loopptr_macro(type, dlp, MPIR_DATALOOP_HETEROGENEOUS);
 
         return MPIR_Dataloop_stream_size(dlp, MPII_Datatype_get_basic_size_external32);
+#endif /* WITH_DAME */
     }
 }
 

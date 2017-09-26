@@ -222,7 +222,11 @@ typedef struct MPIR_Topology MPIR_Topology;
 #include "mpir_err.h"
 #include "mpir_nbc.h"
 #include "mpir_process.h"
+#ifdef WITH_DAME
+#include "mpir_dame.h"
+#else
 #include "mpir_dataloop.h"
+#endif
 #include "mpir_datatype.h"
 #include "mpir_cvars.h"
 #include "mpir_misc_post.h"

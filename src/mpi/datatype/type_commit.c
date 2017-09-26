@@ -48,6 +48,43 @@ int MPIR_Type_commit(MPI_Datatype * datatype_p)
     if (datatype_ptr->is_committed == 0) {
         datatype_ptr->is_committed = 1;
 
+#ifdef WITH_DAME
+        /* Although we pass dataloop_size by pointer, it will not get set in
+         * the function. It was relatively easy to calculate the size when
+         * there were no significant optimizations of the datatype taking
+         * place when constructing the dataloop. But now that we aggressively
+         * optimize the representation, calculating the size becomes difficult.
+         * So we run a second pass to calculate the actual size after all the
+         * optimizations have been performed. I'll continue to pass the
+         * parameter in case we later decide that we would rather not do
+         * another pass over the datatype and calculate the size "on the fly" */
+        MPIR_Dame_create(*datatype_p,
+                         &datatype_ptr->dataloop,
+                         &datatype_ptr->dataloop_size, &datatype_ptr->dataloop_depth);
+
+        /* We need the dataloop size to compact it for the RMA code. */
+        MPIR_Dame_calculate_size(datatype_ptr->dataloop, &datatype_ptr->dataloop_size, 0);
+
+        /* After the call to Dataloop_create, the structs will be represented
+         * without the additional space above the subtypes which DL_pack and
+         * DL_unpack expect. While it's in this form, it's easier (and more
+         * space-efficient) to compact it. The call to Dataloop_update() will
+         * "fix" the dataloop to the form that DL_pack and DL_unpack expect.
+         * (for details see the comments in Dataloop_update()) */
+        MPIR_Dame_serialize(datatype_ptr->dataloop,
+                            datatype_ptr->dataloop_size, &datatype_ptr->compact_dataloop);
+
+        /* This will adjust the inner types. See comments above and in the
+         * definition of Dataloop_update. This representation will be used for
+         * local operations and pt2pt communication. The compact representation
+         * will be used in RMA operations and converted to this representation
+         * on the target */
+        MPIR_Dame_update(datatype_ptr->dataloop, 0);
+#if 0
+        MPIR_Dame_print(datatype_ptr->dataloop);
+        MPIR_Dame_print_compact(datatype_ptr->compact_dataloop);
+#endif
+#else
 #ifdef MPID_NEEDS_DLOOP_ALL_BYTES
         /* If MPID implementation needs use to reduce everything to
          * a byte stream, do that. */
@@ -74,7 +111,7 @@ int MPIR_Type_commit(MPI_Datatype * datatype_p)
 #if 0
         MPII_Dataloop_dot_printf(datatype_ptr->dataloop, 0, 1);
 #endif
-
+#endif
 #ifdef MPID_Type_commit_hook
         MPID_Type_commit_hook(datatype_ptr);
 #endif /* MPID_Type_commit_hook */
