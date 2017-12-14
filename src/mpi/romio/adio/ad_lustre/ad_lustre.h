@@ -34,6 +34,9 @@
 #include <linux/lustre/lustre_user.h>
 #endif
 
+#ifdef HAVE_LUSTRE_LUSTREAPI_H
+#include <lustre/lustreapi.h>
+#endif
 
 #ifdef HAVE_SIGNAL_H
 #include <signal.h>
@@ -49,6 +52,20 @@
 #include <sys/aio.h>
 #endif
 #endif /* End of HAVE_AIO_LITE_H */
+
+#define LDEBUG(format, ...)				\
+do {							\
+    fprintf(stderr, "%s(%d): "format,			\
+	    __func__, __LINE__, ## __VA_ARGS__);	\
+} while (0)
+
+#define DEFAULT_STRIPE_SIZE (1 << 20)
+
+#define GOTO(label, rc)				\
+do {							\
+    ((void)(rc));					\
+    goto label;						\
+} while (0)
 
 void ADIOI_LUSTRE_Open(ADIO_File fd, int *error_code);
 void ADIOI_LUSTRE_Close(ADIO_File fd, int *error_code);
@@ -77,7 +94,8 @@ void ADIOI_LUSTRE_SetInfo(ADIO_File fd, MPI_Info users_info, int *error_code);
 int ADIOI_LUSTRE_Docollect(ADIO_File fd, int contig_access_count,
                            ADIO_Offset * len_list, int nprocs);
 
-void ADIOI_LUSTRE_Get_striping_info(ADIO_File fd, int *striping_info, int mode);
+void ADIOI_LUSTRE_Get_striping_info(ADIO_File fd, int mode, int **striping_info_ptr);
+
 void ADIOI_LUSTRE_Calc_my_req(ADIO_File fd, ADIO_Offset * offset_list,
                               ADIO_Offset * len_list, int contig_access_count,
                               int *striping_info, int nprocs,
@@ -88,5 +106,13 @@ void ADIOI_LUSTRE_Free_my_req(int nprocs, int *count_my_req_per_proc,
                               ADIOI_Access * my_req, ADIO_Offset ** buf_idx);
 
 int ADIOI_LUSTRE_Calc_aggregator(ADIO_File fd, ADIO_Offset off,
-                                 ADIO_Offset * len, int *striping_info);
+                                 int *striping_info, ADIO_Offset * len);
+#ifdef HAVE_LUSTRE_COMP_LAYOUT_SUPPORT
+int ADIOI_LUSTRE_Get_lcm_stripe_count(struct llapi_layout *layout);
+ADIO_Offset ADIOI_LUSTRE_Get_last_stripe_size(struct llapi_layout *layout);
+int ADIOI_LUSTRE_Parse_comp_layout_opt(char *opt, struct llapi_layout **layout_ptr);
+#ifdef HAVE_YAML_SUPPORT
+int ADIOI_LUSTRE_Parse_yaml_temp(char *tempfile, struct llapi_layout **layout_ptr);
+#endif /* HAVE_YAML_SUPPORT */
+#endif /*  HAVE_LUSTRE_COMP_LAYOUT_SUPPORT */
 #endif /* AD_LUSTRE_H_INCLUDED */
