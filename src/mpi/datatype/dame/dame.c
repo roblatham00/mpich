@@ -118,7 +118,7 @@ int MPIR_Dame_alloc_compact(MPI_Aint dataloop_size, DAME_Dame ** new_dl)
 int MPIR_Dame_struct_alloc(DAME_Count count, DAME_Dame * dl)
 {
     dl->kind = DL_STRUCT;
-    dl->s.s_t.dls = (DAME_Dame **) MPL_malloc(count * sizeof(DAME_Dame *));
+    dl->s.s_t.dls = (DAME_Dame **) MPL_malloc(count * sizeof(DAME_Dame *), MPL_MEM_DATATYPE);
     if (!dl->s.s_t.dls)
         return -1;
 
@@ -166,7 +166,8 @@ int MPIR_Dame_dup(DAME_Dame * old_dl, DAME_Size unused, DAME_Dame ** new_dl)
                 (*new_dl)[i].s.bi_t.oldsize = old_dl[i].s.bi_t.oldsize;
                 (*new_dl)[i].s.bi_t.blklen = old_dl[i].s.bi_t.blklen;
                 (*new_dl)[i].s.bi_t.offsets =
-                    (MPI_Aint *) MPL_malloc(old_dl[i].count * sizeof(MPI_Aint));
+                    (MPI_Aint *) MPL_malloc(old_dl[i].count * sizeof(MPI_Aint),
+				    MPL_MEM_DATATYPE);
                 if (!(*new_dl)[i].s.bi_t.offsets)
                     goto error_exit;
                 memcpy((MPI_Aint *) (*new_dl)[i].s.bi_t.offsets,
@@ -176,13 +177,15 @@ int MPIR_Dame_dup(DAME_Dame * old_dl, DAME_Size unused, DAME_Dame ** new_dl)
             case DL_INDEXFINAL:
                 (*new_dl)[i].s.i_t.oldsize = old_dl[i].s.i_t.oldsize;
                 (*new_dl)[i].s.i_t.blklens =
-                    (MPI_Aint *) MPL_malloc(old_dl[i].count * sizeof(MPI_Aint));
+                    (MPI_Aint *) MPL_malloc(old_dl[i].count * sizeof(MPI_Aint),
+				    MPL_MEM_DATATYPE);
                 if (!(*new_dl)[i].s.i_t.blklens)
                     goto error_exit;
                 memcpy((MPI_Aint *) (*new_dl)[i].s.i_t.blklens,
                        old_dl[i].s.i_t.blklens, old_dl[i].count * sizeof(MPI_Aint));
                 (*new_dl)[i].s.i_t.offsets =
-                    (MPI_Aint *) MPL_malloc(old_dl[i].count * sizeof(MPI_Aint));
+                    (MPI_Aint *) MPL_malloc(old_dl[i].count * sizeof(MPI_Aint),
+				    MPL_MEM_DATATYPE);
                 if (!(*new_dl)[i].s.i_t.offsets)
                     goto error_exit;
                 memcpy((MPI_Aint *) (*new_dl)[i].s.i_t.offsets,
@@ -190,19 +193,21 @@ int MPIR_Dame_dup(DAME_Dame * old_dl, DAME_Size unused, DAME_Dame ** new_dl)
                 break;
             case DL_STRUCT:
                 (*new_dl)[i].s.s_t.oldsizes =
-                    (MPI_Aint *) MPL_malloc(old_dl[i].count * sizeof(MPI_Aint));
+                    (MPI_Aint *) MPL_malloc(old_dl[i].count * sizeof(MPI_Aint),
+				    MPL_MEM_DATATYPE);
                 if (!(*new_dl)[i].s.s_t.oldsizes)
                     goto error_exit;
                 memcpy((MPI_Aint *) (*new_dl)[i].s.s_t.oldsizes,
                        old_dl[i].s.s_t.oldsizes, old_dl[i].count * sizeof(MPI_Aint));
                 (*new_dl)[i].s.s_t.blklens =
-                    (MPI_Aint *) MPL_malloc(old_dl[i].count * sizeof(MPI_Aint));
+                    (MPI_Aint *) MPL_malloc(old_dl[i].count * sizeof(MPI_Aint),
+				    MPL_MEM_DATATYPE);
                 if (!(*new_dl)[i].s.s_t.blklens)
                     goto error_exit;
                 memcpy((MPI_Aint *) (*new_dl)[i].s.s_t.blklens,
                        old_dl[i].s.s_t.blklens, old_dl[i].count * sizeof(MPI_Aint));
                 (*new_dl)[i].s.s_t.offsets =
-                    (MPI_Aint *) MPL_malloc(old_dl[i].count * sizeof(MPI_Aint));
+                    (MPI_Aint *) MPL_malloc(old_dl[i].count * sizeof(MPI_Aint), MPL_MEM_DATATYPE);
                 if (!(*new_dl)[i].s.s_t.offsets)
                     goto error_exit;
                 memcpy((MPI_Aint *) (*new_dl)[i].s.s_t.offsets,
@@ -918,7 +923,7 @@ int MPIR_Dame_deserialize(DAME_Dame * compact_dl,
                 (*new_dl)[i].s.bi_t.oldsize = compact_dl[i].s.bi_t.oldsize;
                 (*new_dl)[i].s.bi_t.blklen = compact_dl[i].s.bi_t.blklen;
                 (*new_dl)[i].s.bi_t.offsets
-                    = (MPI_Aint *) MPL_malloc(compact_dl[i].count * sizeof(MPI_Aint));
+                    = (MPI_Aint *) MPL_malloc(compact_dl[i].count * sizeof(MPI_Aint), MPL_MEM_DATATYPE);
                 if (!(*new_dl)[i].s.bi_t.offsets)
                     goto error_exit;
                 compact_offsets = GET_COMPACTED_BUF(compact_dl[i].s.bi_t.offsets);
@@ -929,14 +934,14 @@ int MPIR_Dame_deserialize(DAME_Dame * compact_dl,
             case DL_INDEXFINAL:
                 (*new_dl)[i].s.i_t.oldsize = compact_dl[i].s.i_t.oldsize;
                 (*new_dl)[i].s.i_t.blklens
-                    = (MPI_Aint *) MPL_malloc(compact_dl[i].count * sizeof(MPI_Aint));
+                    = (MPI_Aint *) MPL_malloc(compact_dl[i].count * sizeof(MPI_Aint), MPL_MEM_DATATYPE);
                 if (!(*new_dl)[i].s.i_t.blklens)
                     goto error_exit;
                 compact_blklens = GET_COMPACTED_BUF(compact_dl[i].s.i_t.blklens);
                 memcpy((MPI_Aint *) (*new_dl)[i].s.i_t.blklens,
                        compact_blklens, compact_dl[i].count * sizeof(MPI_Aint));
                 (*new_dl)[i].s.i_t.offsets
-                    = (MPI_Aint *) MPL_malloc(compact_dl[i].count * sizeof(MPI_Aint));
+                    = (MPI_Aint *) MPL_malloc(compact_dl[i].count * sizeof(MPI_Aint), MPL_MEM_DATATYPE);
                 if (!(*new_dl)[i].s.i_t.offsets)
                     goto error_exit;
                 compact_offsets = GET_COMPACTED_BUF(compact_dl[i].s.i_t.offsets);
@@ -945,21 +950,21 @@ int MPIR_Dame_deserialize(DAME_Dame * compact_dl,
                 break;
             case DL_STRUCT:
                 (*new_dl)[i].s.s_t.oldsizes
-                    = (MPI_Aint *) MPL_malloc(compact_dl[i].count * sizeof(MPI_Aint));
+                   = (MPI_Aint *) MPL_malloc(compact_dl[i].count * sizeof(MPI_Aint), MPL_MEM_DATATYPE);
                 if (!(*new_dl)[i].s.s_t.oldsizes)
                     goto error_exit;
                 compact_oldsizes = GET_COMPACTED_BUF(compact_dl[i].s.s_t.oldsizes);
                 memcpy((MPI_Aint *) (*new_dl)[i].s.s_t.oldsizes,
                        compact_oldsizes, compact_dl[i].count * sizeof(MPI_Aint));
                 (*new_dl)[i].s.s_t.blklens
-                    = (MPI_Aint *) MPL_malloc(compact_dl[i].count * sizeof(MPI_Aint));
+                    = (MPI_Aint *) MPL_malloc(compact_dl[i].count * sizeof(MPI_Aint), MPL_MEM_DATATYPE);
                 if (!(*new_dl)[i].s.s_t.blklens)
                     goto error_exit;
                 compact_blklens = GET_COMPACTED_BUF(compact_dl[i].s.s_t.blklens);
                 memcpy((MPI_Aint *) (*new_dl)[i].s.s_t.blklens,
                        compact_blklens, compact_dl[i].count * sizeof(MPI_Aint));
                 (*new_dl)[i].s.s_t.offsets
-                    = (MPI_Aint *) MPL_malloc(compact_dl[i].count * sizeof(MPI_Aint));
+                    = (MPI_Aint *) MPL_malloc(compact_dl[i].count * sizeof(MPI_Aint), MPL_MEM_DATATYPE);
                 if (!(*new_dl)[i].s.s_t.offsets)
                     goto error_exit;
                 compact_offsets = GET_COMPACTED_BUF(compact_dl[i].s.s_t.offsets);

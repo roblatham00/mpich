@@ -182,9 +182,9 @@ int MPIR_Dame_create_struct(DAME_Count count,
     MPIR_Dame_struct_alloc((DAME_Count) nr_basics + nr_derived, &(*dl)[*depth]);
 
     MPI_Aint bufsize = (nr_basics + nr_derived) * sizeof(MPI_Aint);
-    MPI_Aint *tmpoffsets = (MPI_Aint *) MPL_malloc(bufsize);
-    MPI_Aint *tmpblklens = (MPI_Aint *) MPL_malloc(bufsize);
-    MPI_Aint *tmpoldsizes = (MPI_Aint *) MPL_malloc(bufsize);
+    MPI_Aint *tmpoffsets = (MPI_Aint *) MPL_malloc(bufsize, MPL_MEM_DATATYPE);
+    MPI_Aint *tmpblklens = (MPI_Aint *) MPL_malloc(bufsize, MPL_MEM_DATATYPE);
+    MPI_Aint *tmpoldsizes = (MPI_Aint *) MPL_malloc(bufsize, MPL_MEM_DATATYPE);
 
     int d = *depth;
     for (i = 0, loop_idx = 0; i < count; i++) {
