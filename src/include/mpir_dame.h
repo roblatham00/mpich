@@ -79,7 +79,7 @@
     MPIR_Ensure_Aint_fits_in_pointer(value_)
 
 /* allocate and free functions must also be defined. */
-#define DAME_Malloc MPL_malloc
+#define DAME_Malloc(x) MPL_malloc((x), MPL_MEM_DATATYPE)
 #define DAME_Free   MPL_free
 
 /* assert function */
