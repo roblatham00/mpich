@@ -32,7 +32,7 @@ typedef unsigned char byte;
   Input/output Parameters:
   . dataloop - pointer to dataloop structure
   @*/
-void MPIR_Dame_free(DAME_Dame ** dl)
+void MPIR_Dame_free(DAME_Dame ** dl, int is_compact)
 {
     if (*dl == NULL)
         return;
@@ -41,37 +41,46 @@ void MPIR_Dame_free(DAME_Dame ** dl)
     DAME_dbg_printf("Dame_free: freeing loop @ %x.\n", (int) *dl);
 #endif
     unsigned i = 0, j = 0;
+    /* why the memset? */
     for (i = 0; i < DAME_MAX_DEPTH; i++) {
         switch ((*dl)[i].kind) {
             case DL_BLOCKINDEX:
             case DL_BLOCKINDEX1:
             case DL_BLOCKINDEXFINAL:
-                memset((void *) ((*dl)[i].s.i_t.offsets), 0, (*dl)[i].count * sizeof(MPI_Aint));
-                DAME_Free((void *) ((*dl)[i].s.bi_t.offsets));
+                is_compact ?  DAME_Free(
+				GET_COMPACTED_BUF((*dl)[i].s.bi_t.offsets)) :
+			DAME_Free((void *) ((*dl)[i].s.bi_t.offsets)) ;
                 (*dl)[i].s.bi_t.offsets = NULL;
                 break;
             case DL_INDEX:
             case DL_INDEXFINAL:
-                memset((void *) ((*dl)[i].s.i_t.offsets), 0, (*dl)[i].count * sizeof(MPI_Aint));
-                DAME_Free((void *) ((*dl)[i].s.i_t.offsets));
+                is_compact ?  DAME_Free(
+				GET_COMPACTED_BUF((*dl)[i].s.i_t.offsets) ) :
+			DAME_Free((void *) ((*dl)[i].s.i_t.offsets)) ;
                 (*dl)[i].s.i_t.offsets = NULL;
-                memset((void *) ((*dl)[i].s.i_t.blklens), 0, (*dl)[i].count * sizeof(MPI_Aint));
-                DAME_Free((void *) ((*dl)[i].s.i_t.blklens));
+                is_compact ? DAME_Free(
+				GET_COMPACTED_BUF((*dl)[i].s.i_t.blklens) ) :
+			DAME_Free((void *) ((*dl)[i].s.i_t.blklens));
                 (*dl)[i].s.i_t.blklens = NULL;
                 break;
             case DL_STRUCT:
-                memset((void *) ((*dl)[i].s.s_t.oldsizes), 0, (*dl)[i].count * sizeof(MPI_Aint));
-                DAME_Free((void *) ((*dl)[i].s.s_t.oldsizes));
-                memset((void *) ((*dl)[i].s.s_t.blklens), 0, (*dl)[i].count * sizeof(MPI_Aint));
-                DAME_Free((void *) ((*dl)[i].s.s_t.blklens));
-                memset((void *) ((*dl)[i].s.i_t.offsets), 0, (*dl)[i].count * sizeof(MPI_Aint));
-                DAME_Free((void *) ((*dl)[i].s.s_t.offsets));
+                is_compact ? DAME_Free(
+				GET_COMPACTED_BUF((*dl)[i].s.s_t.oldsizes)) :
+			DAME_Free((void *) ((*dl)[i].s.s_t.oldsizes));
+                is_compact ? DAME_Free(
+				GET_COMPACTED_BUF((*dl)[i].s.s_t.blklens)) :
+			DAME_Free((void *) ((*dl)[i].s.s_t.blklens));
+                is_compact ?  DAME_Free(
+				GET_COMPACTED_BUF((*dl)[i].s.s_t.offsets)) :
+			DAME_Free((void *) ((*dl)[i].s.s_t.offsets));
                 (*dl)[i].s.s_t.offsets = NULL;
                 for (j = 0; j < (*dl)[i].count; j++) {
-                    MPIR_Dame_free(&((*dl)[i].s.s_t.dls[j]));
+                    MPIR_Dame_free(&((*dl)[i].s.s_t.dls[j]), is_compact);
                     (*dl)[i].s.s_t.dls[j] = NULL;
                 }
-                DAME_Free((void *) ((*dl)[i].s.s_t.dls));
+                is_compact ? DAME_Free(
+				GET_COMPACTED_BUF((*dl)[i].s.s_t.dls)) :
+			DAME_Free((void *) ((*dl)[i].s.s_t.dls));
             default:
                 break;
         }

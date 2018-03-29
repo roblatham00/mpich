@@ -556,10 +556,10 @@ static inline void MPIR_Datatype_free(MPIR_Datatype * ptr)
     }
 #ifdef WITH_DAME
     if (ptr->dataloop) {
-        MPIR_Dame_free(&(ptr->dataloop));
+        MPIR_Dame_free(&(ptr->dataloop), 0);
     }
     if (ptr->compact_dataloop) {
-        MPIR_Dame_free(&(ptr->compact_dataloop));
+        MPIR_Dame_free(&(ptr->compact_dataloop), 1);
     }
 #else
     if (ptr->dataloop) {

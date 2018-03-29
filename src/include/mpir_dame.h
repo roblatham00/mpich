@@ -286,7 +286,7 @@ void MPIR_Dame_alloc_and_copy(DAME_Dame * old_loop, DAME_Dame ** new_loop_p);
 int MPIR_Dame_struct_alloc(DAME_Count count, DAME_Dame * dl);
 int MPIR_Dame_dup(DAME_Dame * old_loop, DAME_Size unused, DAME_Dame ** new_loop_p);
 
-void MPIR_Dame_free(DAME_Dame ** dataloop);
+void MPIR_Dame_free(DAME_Dame ** dataloop, int is_compact);
 int MPIR_Dame_move(DAME_Dame * old, DAME_Dame * new);
 
 int MPIR_Dame_update(DAME_Dame * dataloop, MPI_Aint depth);
