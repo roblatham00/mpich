@@ -719,7 +719,7 @@ static void rtree_add_splitnode_node (rtree_const_handle tree,
    {
       (*s1)->child[leftpos++] = newchild; 
 #ifdef RTREE_SORT_ENTRIES
-      rtree_node_sort (*s2, rightpos, 0); 
+      rtree_node_sort (*s1, leftpos, 0); 
 #endif
    }
 

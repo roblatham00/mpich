@@ -37,24 +37,26 @@ typedef struct {
 
 } logfs_rtree_flush_state;
 
-static inline void myqsort_swap(int numbers1[], int numbers2[], int s1, int s2)
+static inline void myqsort_swap(MPI_Aint numbers1[], MPI_Count numbers2[], int s1, int s2)
 {
-    int tmp;
-    tmp = numbers1[s1];
+    MPI_Count tmp;
+    MPI_Aint tmpa;
+    tmpa = numbers1[s1];
     numbers1[s1] = numbers1[s2];
-    numbers1[s2] = tmp;
+    numbers1[s2] = tmpa;
     tmp = numbers2[s1];
     numbers2[s1] = numbers2[s2];
     numbers2[s2] = tmp;
 }
 
-static inline void myqsort(int numbers1[], int numbers2[], int left, int right)
+static inline void myqsort(MPI_Aint numbers1[], MPI_Count numbers2[], int left, int right)
 {
     int l_hold = left;
     int r_hold = right;
-    int pivot1 = numbers1[left];
-    int pivot2 = numbers2[left];
-    while (left < right) {
+    MPI_Aint pivot1 = numbers1[left];
+    MPI_Count pivot2 = numbers2[left];
+    while (left < right)
+    {
         while ((numbers1[right] >= pivot1) && (left < right))
             right--;
         if (left != right)
@@ -81,9 +83,9 @@ static inline void myqsort(int numbers1[], int numbers2[], int left, int right)
 /* takes the growvectors and build list sorted on indices so that the
  * resulting list can be used to construct the filetype for the datalog read
  */
-static void logfs_rtree_readtypes(logfs_rtree_flush_state * state, MPI_Datatype * memtype,
-                                  MPI_Datatype * filetype, int count, int *sortindices,
-                                  int *sortblocklens)
+static void logfs_rtree_readtypes(logfs_rtree_flush_state *state, MPI_Datatype *memtype,
+                                  MPI_Datatype *filetype, int count, MPI_Aint *sortindices,
+                                  MPI_Count *sortblocklens)
 {
     ADIO_Offset *blocklens = growvector_get_null(state->blocklens);
     int i;
@@ -93,9 +95,10 @@ static void logfs_rtree_readtypes(logfs_rtree_flush_state * state, MPI_Datatype 
     /* TODO here: see if we can join readblocks */
 
     /* convert to ints */
-    for (i = 0; i < count; ++i) {
-        sortindices[i] = *tmp1++;
-        sortblocklens[i] = *tmp2++;
+    for (i = 0; i < count; ++i)
+    {
+        sortindices[i] = (MPI_Aint)(*tmp1++);
+        sortblocklens[i] = (MPI_Count)(*tmp2++);
     }
 
     /* Moet ook voor originele volgorde de gesorteerde index weten om memtype
@@ -103,7 +106,7 @@ static void logfs_rtree_readtypes(logfs_rtree_flush_state * state, MPI_Datatype 
    /* google translate: Must also know the sorted index for the original order
     * to create memtype */
     myqsort(sortindices, sortblocklens, 0, count - 1);
-    MPI_Type_indexed(count, sortblocklens, sortindices, MPI_BYTE, filetype);
+    ADIOI_Type_create_hindexed_x(count, sortblocklens, sortindices, MPI_BYTE, filetype);
     MPI_Type_commit(filetype);
 
     /* now reuse sortindices to create memtype */
@@ -115,7 +118,8 @@ static void logfs_rtree_readtypes(logfs_rtree_flush_state * state, MPI_Datatype 
         sortindices[i] = sortindices[i - 1] + blocklens[i - 1];
         sortblocklens[i] = blocklens[i];
     }
-    MPI_Type_indexed(count, sortblocklens, sortindices, MPI_BYTE, memtype);
+
+    ADIOI_Type_create_hindexed_x(count, sortblocklens, sortindices, MPI_BYTE, memtype);
     MPI_Type_commit(memtype);
 
 
@@ -131,8 +135,8 @@ static void logfs_rtree_replay_startwrite(logfs_rtree_flush_state * state)
     int segmentcount = growvector_size(state->indices);
 
     /* temp buffers for ADIO_Offset -> int conversion */
-    int *sortindices = (int *) ADIOI_Malloc(sizeof(int) * segmentcount);
-    int *sortblocklens = (int *) ADIOI_Malloc(sizeof(int) * segmentcount);
+    MPI_Aint *sortindices = (MPI_Aint *)ADIOI_Malloc(sizeof(MPI_Aint) * segmentcount);
+    MPI_Count *sortblocklens = (MPI_Count *)ADIOI_Malloc(sizeof(MPI_Count) * segmentcount);
 
     void *buffer = state->readbuf;
     ADIO_Offset *tmp1;
@@ -169,14 +173,15 @@ static void logfs_rtree_replay_startwrite(logfs_rtree_flush_state * state)
 
 
         /* filetype for real file; need to convert to ints  */
-        tmp1 = (ADIO_Offset *) growvector_get_null(state->blocklens);
-        tmp2 = (ADIO_Offset *) growvector_get_null(state->realpos);
-        for (i = 0; i < segmentcount; ++i) {
-            sortblocklens[i] = *tmp1++;
-            sortindices[i] = *tmp2++;
+        tmp1 = (ADIO_Offset *)growvector_get_null(state->blocklens);
+        tmp2 = (ADIO_Offset *)growvector_get_null(state->realpos);
+        for (i = 0; i < segmentcount; ++i)
+        {
+            sortblocklens[i] = (MPI_Count)(*tmp1++);
+            sortindices[i] = (MPI_Aint)(*tmp2++);
         }
 
-        MPI_Type_indexed(segmentcount, sortblocklens, sortindices, MPI_BYTE, &writefiletype);
+        ADIOI_Type_create_hindexed_x(segmentcount, sortblocklens, sortindices, MPI_BYTE, &writefiletype);
         MPI_Type_commit(&writefiletype);
 
     }
@@ -196,11 +201,10 @@ static void logfs_rtree_replay_startwrite(logfs_rtree_flush_state * state)
     growvector_clear(state->indices);
     growvector_clear(state->realpos);
 
-   /* free conversion buffers */
-   ADIOI_Free (sortindices); 
-   ADIOI_Free (sortblocklens); 
-
-
+    /* free conversion buffers */
+    ADIOI_Free(sortindices);
+    ADIOI_Free(sortblocklens);
+    
     /* if we are collective, do an alreduce in the end to find the maximum
      * filesize and to see if everybody is done... */
 }
