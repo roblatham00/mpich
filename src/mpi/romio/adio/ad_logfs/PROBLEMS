@@ -1,0 +1,6 @@
+* how to deal with delete? file is not open, so no view can be set, so we
+  cannot override the delete function to delete the logfiles too...
+
+
+* multiple opens
+    -> share logfiles?

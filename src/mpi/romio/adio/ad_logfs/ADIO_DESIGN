@@ -1,0 +1,45 @@
+* Independent vs collective open
+
+  LogFS cannot reuse the existing file handle, since it is unable to set the
+  view in a reliable way from an independent call. (Which could be needed for
+  example, if an independent replay is needed)
+
+  For now this would work, since ADIO_Set_view only modifies some AD_File
+  variables; However, for the new two phase, if I'm not mistaken, their was
+  some communication on set_view to precalculate some data.
+
+  The real questions:
+      1° Is ADIOI_Set_view collective or not? (in ALL ADIO drivers?)
+      2° What about independent open? What about a replay on a CPU that didn't
+      yet open the file?
+
+
+* Difficult (for the layering):
+  ADIO_Open doesn't have the MPI_Info even though MPI_File_open has it;
+  -> at open time the info is not available; only afterwards set_info
+     is called
+
+* Strange:
+    -> ADIOI_xxx_SetInfo is called BEFORE ADIOI_xxxx_Open is called!
+         annoying, because ADIOI_xxx_Open can allocate the
+         fs_ptr structure (which might be used to store the hints)
+         however, it is only allocated on ADIOI_xxx_Open!
+
+    As a consequence, FS-specific data has to be in the general
+    ADIO_Fd structure (See union in ADIOI_Hints_strict );
+
+    Also, not calling ADIOI_Gen_SetInfo makes open crash
+    (because hints->cb_config_list remains 0 and ADIOI_cb_config_list_parse
+    assumes it is not 0 )
+
+* Uses_generic_read | write
+
+  -> should use properties / flags / ... instead of function addrs
+
+
+
+* data sieving:
+   For example, adio_open ("shared" function)
+   plays with access_mode (lies about it) just to be able to do data sieving
+   -> means that PVFS2 files in wr-only mode are also always openend in rdwr
+   mode, even though not needed
