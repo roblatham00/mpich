@@ -8,6 +8,7 @@
 
 #undef AGG_DEBUG
 
+#ifdef HAVE_LUSTRE_COMP_LAYOUT_SUPPORT
 static int gcd(int a, int b)
 {
     if (a % b == 0)
@@ -24,16 +25,16 @@ static int ADIOI_LUSTRE_LCM(int a, int b)
     g = gcd(a, b);
     return a * b / g;
 }
+#endif
 
 ADIO_Offset ADIOI_LUSTRE_Get_last_stripe_size(struct llapi_layout * layout)
 {
     uint64_t last_stripe_size;
-    int rc;
 
 #ifdef HAVE_LUSTRE_COMP_LAYOUT_SUPPORT
     if (!llapi_layout_comp_use(layout, LLAPI_LAYOUT_COMP_USE_LAST))
 #endif
-        rc = llapi_layout_stripe_size_get(layout, &last_stripe_size);
+        llapi_layout_stripe_size_get(layout, &last_stripe_size);
 
 #ifdef AGG_DEBUG
     LDEBUG("last_stripe_size is %llu\n", last_stripe_size);
@@ -43,9 +44,10 @@ ADIO_Offset ADIOI_LUSTRE_Get_last_stripe_size(struct llapi_layout * layout)
 
 int ADIOI_LUSTRE_Get_lcm_stripe_count(struct llapi_layout *layout)
 {
-    uint64_t lcm_stripe_count = 1, stripe_count = 1;
-    int rc;
+    uint64_t lcm_stripe_count = 1;
 #ifdef HAVE_LUSTRE_COMP_LAYOUT_SUPPORT
+    int rc;
+    uint64_t stripe_count = 1;
     rc = llapi_layout_comp_use(layout, LLAPI_LAYOUT_COMP_USE_FIRST);
     while (rc == 0) {
         if (llapi_layout_stripe_count_get(layout, &stripe_count))
@@ -54,7 +56,7 @@ int ADIOI_LUSTRE_Get_lcm_stripe_count(struct llapi_layout *layout)
         rc = llapi_layout_comp_use(layout, LLAPI_LAYOUT_COMP_USE_NEXT);
     }
 #else
-    rc = llapi_layout_stripe_count_get(layout, &lcm_stripe_count);
+    llapi_layout_stripe_count_get(layout, &lcm_stripe_count);
 #endif
     return lcm_stripe_count;
 }
@@ -64,7 +66,6 @@ static int ADIOI_LUSTRE_Calc_avail_cbnodes(ADIO_File fd, int mode)
     int avail_cb_nodes, divisor, CO = 1;
     int nprocs_for_coll = fd->hints->cb_nodes;
     int lcm_stripe_count = fd->hints->striping_factor;
-    int rc;
 
     /* Calculate the available number of I/O clients */
     if (!mode) {
@@ -137,7 +138,6 @@ static int ADIOI_LUSTRE_Calc_avail_cbnodes(ADIO_File fd, int mode)
 void ADIOI_LUSTRE_Get_striping_info(ADIO_File fd, int mode, int **striping_info_ptr)
 {
     int *striping_info = NULL;
-    int stripe_size, avail_cb_nodes;
 
     *striping_info_ptr = (int *) ADIOI_Malloc(2 * sizeof(int));
     striping_info = *striping_info_ptr;
