@@ -125,6 +125,53 @@ static void ADIO_FileSysType_parentdir(const char *filename, char **dirnamep);
 static void ADIO_FileSysType_prefix(const char *filename, int *fstype, int *error_code);
 static void ADIO_FileSysType_fncall(const char *filename, int *fstype, int *error_code);
 
+struct ADIO_FSTypes {
+    ADIOI_Fns *fileops;         /* function table */
+    int fstype;                 /* ADIO_xxx constant */
+    const char *prefix;         /* file prefix */
+};
+
+/*
+ * To add an ADIO
+ *    - add to the table below
+ *    - add a constant for your ADIO in include/adio.h
+ *    - add a guarded include in include/adioi_fs_proto.h
+ */
+static struct ADIO_FSTypes fstypes[] = {
+#ifdef ROMIO_UFS
+    {&ADIO_UFS_operations, ADIO_UFS, "ufs:"},
+#endif
+#ifdef ROMIO_NFS
+    {&ADIO_NFS_operations, ADIO_NFS, "nfs:"},
+#endif
+#ifdef ROMIO_XFS
+    {&ADIO_XFS_operations, ADIO_XFS, "xfs:"},
+#endif
+#ifdef ROMIO_PVFS2
+    {&ADIO_PVFS2_operations, ADIO_PVFS2, "pvfs2:"},
+#endif
+#ifdef ROMIO_GPFS
+    {&ADIO_GPFS_operations, ADIO_GPFS, "gpfs:"},
+#endif
+#ifdef ROMIO_PANFS
+    {&ADIO_PANFS_operations, ADIO_PANFS, "panfs:"},
+#endif
+#ifdef ROMIO_LUSTRE
+    {&ADIO_LUSTRE_operations, ADIO_LUSTRE, "lustre:"},
+#endif
+#ifdef ROMIO_TESTFS
+    {&ADIO_TESTFS_operations, ADIO_TESTFS, "testfs:"},
+#endif
+#ifdef ROMIO_IME
+    {&ADIO_IME_operations, ADIO_IME, "ime:"},
+#endif
+#ifdef ROMIO_MOCHIO
+    {&ADIO_MOCHIO_operations, ADIO_MOCHIO, "mochio:"},
+#endif
+    {0, 0, 0}   /* guard entry */
+};
+
+
 /*
  ADIO_FileSysType_parentdir - determines a string pathname for the
  parent directory of a given filename.
