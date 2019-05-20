@@ -62,5 +62,9 @@ extern struct ADIOI_Fns_struct ADIO_DAOS_operations;
 extern struct ADIOI_Fns_struct ADIO_QUOBYTEFS_operations;
 extern void ADIOI_QUOBYTEFS_CreateAdapter(const char *, int *);
 #endif
+#ifdef ROMIO_MOCHIO
+/* prototypes are in adio/ad_mochio/ad_mochio.h */
+extern struct ADIOI_Fns_struct ADIO_MOCHIO_operations;
+#endif
 
 #endif /* ADIOI_FS_PROTO_H_INCLUDED */
