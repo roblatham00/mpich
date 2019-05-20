@@ -169,6 +169,9 @@ static struct ADIO_FSTypes fstypes[] = {
 #ifdef ROMIO_IME
     {&ADIO_IME_operations, ADIO_IME, "ime:"},
 #endif
+#ifdef ROMIO_MOCHIO
+    {&ADIO_MOCHIO_operations, ADIO_MOCHIO, "mochio:"},
+#endif
     {0, 0, 0}   /* guard entry */
 };
 
