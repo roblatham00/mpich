@@ -62,5 +62,9 @@ extern struct ADIOI_Fns_struct ADIO_DAOS_operations;
 extern struct ADIOI_Fns_struct ADIO_QUOBYTEFS_operations;
 extern void ADIOI_QUOBYTEFS_CreateAdapter(const char *, int *);
 #endif
+#ifdef ROMIO_BV
+/* prototypes are in adio/ad_benvolio/ad_bv.h */
+extern struct ADIOI_Fns_struct ADIO_BV_operations;
+#endif
 
 #endif /* ADIOI_FS_PROTO_H_INCLUDED */
