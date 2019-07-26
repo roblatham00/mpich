@@ -16,13 +16,14 @@ struct ADIOI_Fns_struct ADIO_MOCHIO_operations = {
     ADIOI_SCALEABLE_OpenColl, /* OpenColl */ /*XXX*/
         ADIOI_MOCHIO_ReadContig,        /* ReadContig */
     ADIOI_MOCHIO_WriteContig,   /* WriteContig */
-    ADIOI_GEN_ReadStridedColl,  /* ReadStridedColl */
-    ADIOI_GEN_WriteStridedColl, /* WriteStridedColl */
+    /* no collectives for MOCHIO: same as indep */
+    ADIOI_MOCHIO_ReadStrided,   /* ReadStridedColl */
+    ADIOI_MOCHIO_WriteStrided,  /* WriteStridedColl */
     ADIOI_GEN_SeekIndividual,   /* SeekIndividual */
     ADIOI_GEN_Fcntl,    /* Fcntl */
     ADIOI_GEN_SetInfo,  /* SetInfo */
-    ADIOI_GEN_ReadStrided,      /* ReadStrided */
-    ADIOI_GEN_WriteStrided,     /* WriteStrided */
+    ADIOI_MOCHIO_ReadStrided,   /* ReadStrided */
+    ADIOI_MOCHIO_WriteStrided,  /* WriteStrided */
     ADIOI_MOCHIO_Close, /* Close */
     ADIOI_FAKE_IreadContig,     /* IreadContig */
     ADIOI_FAKE_IwriteContig,    /* IwriteContig */
