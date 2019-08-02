@@ -284,7 +284,7 @@ int ADIOI_MOCHIO_StridedListIO(ADIO_File fd, void *buf, int count,
     int64_t cur_io_size = 0, io_size = 0;
     int etype_size = -1;
     int num_etypes_in_filetype = -1, num_filetypes = -1;
-    int etypes_in_filetype = -1, size_in_filetype = -1;
+    int etypes_in_filetype = -1, size_into_filetype = -1;
     int bytes_into_filetype = 0;
     MPI_Offset response = 0, total_bytes_accessed = 0;
 
@@ -304,7 +304,6 @@ int ADIOI_MOCHIO_StridedListIO(ADIO_File fd, void *buf, int count,
     ADIOI_Flatlist_node *flat_buf_p, *flat_file_p;
     MPI_Count buftype_size = -1, filetype_size = -1;
     MPI_Aint filetype_extent = -1, buftype_extent = -1;;
-    int buftype_is_contig = -1, filetype_is_contig = -1;
 
     static char myname[] = "ADIOI_MOCHIO_STRIDED_LISTIO";
 
@@ -329,41 +328,8 @@ int ADIOI_MOCHIO_StridedListIO(ADIO_File fd, void *buf, int count,
     io_size = buftype_size * count;
 
 
-    /* Flatten the memory datatype
-     * (file datatype has already been flattened in ADIO open
-     * unless it is contibuous, then we need to flatten it manually)
-     * and set the correct buffers for flat_buf and flat_file */
-    ADIOI_Datatype_iscontig(datatype, &buftype_is_contig);
-    ADIOI_Datatype_iscontig(fd->filetype, &filetype_is_contig);
-    if (buftype_is_contig == 0) {
-        flat_buf_p = ADIOI_Flatten_and_find(datatype);
-    } else {
-        /* flatten and add to the list */
-        flat_buf_p = (ADIOI_Flatlist_node *) ADIOI_Malloc(sizeof(ADIOI_Flatlist_node));
-        flat_buf_p->blocklens = (ADIO_Offset *) ADIOI_Malloc(sizeof(ADIO_Offset));
-        flat_buf_p->indices = (ADIO_Offset *) ADIOI_Malloc(sizeof(ADIO_Offset));
-        /* For the buffer, we can optimize the buftype, this is not
-         * possible with the filetype since it is tiled */
-        buftype_size = buftype_size * count;
-        buftype_extent = buftype_size * count;
-        flat_buf_p->blocklens[0] = buftype_size;
-        flat_buf_p->indices[0] = 0;
-        flat_buf_p->count = 1;
-    }
-    if (filetype_is_contig == 0) {
-        /* TODO: why does avery say this should already have been
-         * flattened in Open, but also says contig types don't get
-         * flattened */
-        flat_file_p = ADIOI_Flatten_and_find(fd->filetype);
-    } else {
-        /* flatten and add to the list */
-        flat_file_p = (ADIOI_Flatlist_node *) ADIOI_Malloc(sizeof(ADIOI_Flatlist_node));
-        flat_file_p->blocklens = (ADIO_Offset *) ADIOI_Malloc(sizeof(ADIO_Offset));
-        flat_file_p->indices = (ADIO_Offset *) ADIOI_Malloc(sizeof(ADIO_Offset));
-        flat_file_p->blocklens[0] = filetype_size;
-        flat_file_p->indices[0] = 0;
-        flat_file_p->count = 1;
-    }
+    flat_buf_p = ADIOI_Flatten_and_find(datatype);
+    flat_file_p = ADIOI_Flatten_and_find(fd->filetype);
 
     /* Find out where we are in the flattened filetype (the block index,
      * how far into the block, and how many bytes_into_filetype)
@@ -403,16 +369,17 @@ int ADIOI_MOCHIO_StridedListIO(ADIO_File fd, void *buf, int count,
     } else {
         num_filetypes = (int) (offset / num_etypes_in_filetype);
         etypes_in_filetype = (int) (offset % num_etypes_in_filetype);
-        size_in_filetype = etypes_in_filetype * etype_size;
+        size_into_filetype = etypes_in_filetype * etype_size;
 
         tmp_filetype_size = 0;
         for (i = 0; i < flat_file_p->count; i++) {
             tmp_filetype_size += flat_file_p->blocklens[i];
-            if (tmp_filetype_size > size_in_filetype) {
+            if (tmp_filetype_size > size_into_filetype) {
                 flat_file_index = i;
                 cur_flat_file_reg_off = flat_file_p->blocklens[i] -
-                    (tmp_filetype_size - size_in_filetype);
-                bytes_into_filetype = offset * filetype_size - flat_file_p->blocklens[i];
+                    (tmp_filetype_size - size_into_filetype);
+                //bytes_into_filetype = offset * filetype_size - flat_file_p->blocklens[i];
+                bytes_into_filetype = offset * filetype_size;
                 break;
             }
         }
@@ -530,17 +497,6 @@ int ADIOI_MOCHIO_StridedListIO(ADIO_File fd, void *buf, int count,
 /* This is a temporary way of filling in status. The right way is to
    keep track of how much data was actually written by ADIOI_BUFFERED_WRITE. */
 #endif
-    if (buftype_is_contig != 0) {
-        ADIOI_Free(flat_buf_p->blocklens);
-        ADIOI_Free(flat_buf_p->indices);
-        ADIOI_Free(flat_buf_p);
-    }
-
-    if (filetype_is_contig != 0) {
-        ADIOI_Free(flat_file_p->blocklens);
-        ADIOI_Free(flat_file_p->indices);
-        ADIOI_Free(flat_file_p);
-    }
 
     return 0;
 }
