@@ -112,8 +112,8 @@ void ADIOI_MOCHIO_ReadStrided(ADIO_File fd,
                               int file_ptr_type,
                               ADIO_Offset offset, ADIO_Status * status, int *error_code)
 {
-    ADIOI_MOCHIO_StridedListIO(fd, buf, count, datatype, file_ptr_type, offset, status, error_code,
-                               READ_OP);
+    ADIOI_MOCHIO_OldStridedListIO(fd, buf, count, datatype, file_ptr_type, offset, status,
+                                  error_code, READ_OP);
 }
 
 void ADIOI_MOCHIO_WriteStrided(ADIO_File fd,
@@ -123,6 +123,6 @@ void ADIOI_MOCHIO_WriteStrided(ADIO_File fd,
                                int file_ptr_type,
                                ADIO_Offset offset, ADIO_Status * status, int *error_code)
 {
-    ADIOI_MOCHIO_StridedListIO(fd, (void *) buf, count, datatype, file_ptr_type, offset, status,
-                               error_code, WRITE_OP);
+    ADIOI_MOCHIO_OldStridedListIO(fd, (void *) buf, count, datatype, file_ptr_type, offset, status,
+                                  error_code, WRITE_OP);
 }

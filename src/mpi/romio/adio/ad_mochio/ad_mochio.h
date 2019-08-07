@@ -35,5 +35,10 @@ int ADIOI_MOCHIO_StridedListIO(ADIO_File fd, void *buf, int count,
                                MPI_Datatype datatype, int file_ptr_type,
                                ADIO_Offset offset, ADIO_Status * status,
                                int *error_code, int rw_type);
+void ADIOI_MOCHIO_OldStridedListIO(ADIO_File fd, void *buf, int count,
+                                   MPI_Datatype datatype, int file_ptr_type,
+                                   ADIO_Offset offset, ADIO_Status * status,
+                                   int *error_code, int rw_type);
+
 
 int ADIOI_MOCHIO_Feature(ADIO_File fd, int flag);

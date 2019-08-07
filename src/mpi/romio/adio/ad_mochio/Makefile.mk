@@ -14,6 +14,7 @@ romio_other_sources +=                 \
     adio/ad_mochio/ad_mochio_open.c           \
     adio/ad_mochio/ad_mochio_close.c           \
     adio/ad_mochio/ad_mochio_io.c \
-    adio/ad_mochio/ad_mochio_io_list.c
+    adio/ad_mochio/ad_mochio_io_list.c \
+    adio/ad_mochio/ad_mochio_io_list_classic.c
 
 endif BUILD_AD_MOCHIO
