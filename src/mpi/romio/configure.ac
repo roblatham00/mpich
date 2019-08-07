@@ -849,6 +849,7 @@ fi
 if test "$PVFS2_CONFIG" = "notfound" -a -n "$with_pvfs2" ; then
 	AC_MSG_ERROR([pvfs2-config not found in $with_pvfs2])
 fi
+
 #############################################
 
 
@@ -1005,6 +1006,8 @@ fi
 if test -n "$file_system_mochio"; then
     dnl romio-svc.h requires mpi, so cannot AC_CHECK_HEADERS here
     AC_DEFINE(ROMIO_MOCHIO, 1, [Define for ROMIO with service-aware driver]),
+    CFLAGS="$CFLAGS $(pkg-config --cflags mochio-client)"
+    LIBS="$LIBS $( pkg-config --libs mochio-client)"
 fi
 
 #
