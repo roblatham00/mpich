@@ -71,6 +71,17 @@ void ADIOI_MOCHIO_OldStridedListIO(ADIO_File fd, void *buf, int count,
     ADIOI_Datatype_iscontig(datatype, &buftype_is_contig);
     ADIOI_Datatype_iscontig(fd->filetype, &filetype_is_contig);
 
+    if (buftype_is_contig && filetype_is_contig) {
+        if (rw_type == READ_OP) {
+            ADIOI_MOCHIO_ReadContig(fd, buf, count, datatype, file_ptr_type, offset, status,
+                                    error_code);
+        } else {
+            ADIOI_MOCHIO_WriteContig(fd, buf, count, datatype, file_ptr_type, offset, status,
+                                     error_code);
+        }
+        return;
+    }
+
     /* the HDF5 tests showed a bug in this list processing code (see many many
      * lines down below).  We added a workaround, but common HDF5 file types
      * are actually contiguous and do not need the expensive workarond */
