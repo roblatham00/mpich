@@ -8,17 +8,17 @@
 
 #include "adio.h"
 #include "adio_extern.h"
-#include "ad_mochio.h"
-#include "ad_mochio_common.h"
+#include "ad_bv.h"
+#include "ad_bv_common.h"
 
 #include <stdint.h>
 
-#include <mochio.h>
+#include <bv.h>
 
-#define MOCHIO_READ 0
-#define MOCHIO_WRITE 1
+#define BV_READ 0
+#define BV_WRITE 1
 
-static void MOCHIO_IOContig(ADIO_File fd,
+static void BV_IOContig(ADIO_File fd,
                             void *buf,
                             int count,
                             MPI_Datatype datatype,
@@ -29,7 +29,7 @@ static void MOCHIO_IOContig(ADIO_File fd,
     MPI_Count datatype_size;
     size_t mem_len;
     off_t file_offset = offset;
-    static char myname[] = "ADIOI_MOCHIO_IOCONTIG";
+    static char myname[] = "ADIOI_BV_IOCONTIG";
     const char *mem_addr;
     uint64_t file_size;
 
@@ -43,14 +43,14 @@ static void MOCHIO_IOContig(ADIO_File fd,
     file_size = mem_len;
 
     switch (io_flag) {
-        case MOCHIO_READ:
+        case BV_READ:
             ret =
-                mochio_read(fd->fs_ptr, fd->filename, 1, &mem_addr, &mem_len, 1, &file_offset,
+                bv_read(fd->fs_ptr, fd->filename, 1, &mem_addr, &mem_len, 1, &file_offset,
                             &file_size);
             break;
-        case MOCHIO_WRITE:
+        case BV_WRITE:
             ret =
-                mochio_write(fd->fs_ptr, fd->filename, 1, &mem_addr, &mem_len, 1, &file_offset,
+                bv_write(fd->fs_ptr, fd->filename, 1, &mem_addr, &mem_len, 1, &file_offset,
                              &file_size);
             break;
         default:
@@ -82,47 +82,47 @@ static void MOCHIO_IOContig(ADIO_File fd,
     return;
 }
 
-void ADIOI_MOCHIO_ReadContig(ADIO_File fd,
+void ADIOI_BV_ReadContig(ADIO_File fd,
                              void *buf,
                              int count,
                              MPI_Datatype datatype,
                              int file_ptr_type,
                              ADIO_Offset offset, ADIO_Status * status, int *error_code)
 {
-    MOCHIO_IOContig(fd, buf, count, datatype, file_ptr_type, offset, status, MOCHIO_READ,
+    BV_IOContig(fd, buf, count, datatype, file_ptr_type, offset, status, BV_READ,
                     error_code);
 }
 
-void ADIOI_MOCHIO_WriteContig(ADIO_File fd,
+void ADIOI_BV_WriteContig(ADIO_File fd,
                               const void *buf,
                               int count,
                               MPI_Datatype datatype,
                               int file_ptr_type,
                               ADIO_Offset offset, ADIO_Status * status, int *error_code)
 {
-    MOCHIO_IOContig(fd,
+    BV_IOContig(fd,
                     (void *) buf,
-                    count, datatype, file_ptr_type, offset, status, MOCHIO_WRITE, error_code);
+                    count, datatype, file_ptr_type, offset, status, BV_WRITE, error_code);
 }
 
-void ADIOI_MOCHIO_ReadStrided(ADIO_File fd,
+void ADIOI_BV_ReadStrided(ADIO_File fd,
                               void *buf,
                               int count,
                               MPI_Datatype datatype,
                               int file_ptr_type,
                               ADIO_Offset offset, ADIO_Status * status, int *error_code)
 {
-    ADIOI_MOCHIO_OldStridedListIO(fd, buf, count, datatype, file_ptr_type, offset, status,
+    ADIOI_BV_OldStridedListIO(fd, buf, count, datatype, file_ptr_type, offset, status,
                                   error_code, READ_OP);
 }
 
-void ADIOI_MOCHIO_WriteStrided(ADIO_File fd,
+void ADIOI_BV_WriteStrided(ADIO_File fd,
                                const void *buf,
                                int count,
                                MPI_Datatype datatype,
                                int file_ptr_type,
                                ADIO_Offset offset, ADIO_Status * status, int *error_code)
 {
-    ADIOI_MOCHIO_OldStridedListIO(fd, (void *) buf, count, datatype, file_ptr_type, offset, status,
+    ADIOI_BV_OldStridedListIO(fd, (void *) buf, count, datatype, file_ptr_type, offset, status,
                                   error_code, WRITE_OP);
 }

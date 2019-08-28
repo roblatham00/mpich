@@ -6,25 +6,25 @@
  *   See COPYRIGHT notice in top-level directory.
  */
 
-#include "ad_mochio.h"
+#include "ad_bv.h"
 
 /* adioi.h has the ADIOI_Fns_struct define */
 #include "adioi.h"
 
-struct ADIOI_Fns_struct ADIO_MOCHIO_operations = {
-    ADIOI_MOCHIO_Open,  /* Open */
+struct ADIOI_Fns_struct ADIO_BV_operations = {
+    ADIOI_BV_Open,  /* Open */
     ADIOI_SCALEABLE_OpenColl, /* OpenColl */ /*XXX*/
-        ADIOI_MOCHIO_ReadContig,        /* ReadContig */
-    ADIOI_MOCHIO_WriteContig,   /* WriteContig */
-    /* no collectives for MOCHIO: same as indep */
-    ADIOI_MOCHIO_ReadStrided,   /* ReadStridedColl */
-    ADIOI_MOCHIO_WriteStrided,  /* WriteStridedColl */
+        ADIOI_BV_ReadContig,        /* ReadContig */
+    ADIOI_BV_WriteContig,   /* WriteContig */
+    /* no collectives for BV: same as indep */
+    ADIOI_BV_ReadStrided,   /* ReadStridedColl */
+    ADIOI_BV_WriteStrided,  /* WriteStridedColl */
     ADIOI_GEN_SeekIndividual,   /* SeekIndividual */
     ADIOI_GEN_Fcntl,    /* Fcntl */
     ADIOI_GEN_SetInfo,  /* SetInfo */
-    ADIOI_MOCHIO_ReadStrided,   /* ReadStrided */
-    ADIOI_MOCHIO_WriteStrided,  /* WriteStrided */
-    ADIOI_MOCHIO_Close, /* Close */
+    ADIOI_BV_ReadStrided,   /* ReadStrided */
+    ADIOI_BV_WriteStrided,  /* WriteStrided */
+    ADIOI_BV_Close, /* Close */
     ADIOI_FAKE_IreadContig,     /* IreadContig */
     ADIOI_FAKE_IwriteContig,    /* IwriteContig */
     ADIOI_FAKE_IODone,  /* ReadDone */
@@ -36,8 +36,8 @@ struct ADIOI_Fns_struct ADIO_MOCHIO_operations = {
     ADIOI_GEN_Flush,    /* Flush */
     ADIOI_GEN_Resize,   /* Resize */
     ADIOI_GEN_Delete,   /* Delete */
-    ADIOI_MOCHIO_Feature,
-    "MOCHIO: ROMIO + Mochi",
+    ADIOI_BV_Feature,
+    "BENVOLIO: ROMIO + Mochi",
     ADIOI_GEN_IreadStridedColl,
     ADIOI_GEN_IwriteStridedColl
 };

@@ -1,8 +1,8 @@
 
 #include "adio.h"
-#include "ad_mochio.h"
+#include "ad_bv.h"
 
-int ADIOI_MOCHIO_Feature(ADIO_File fd, int flag)
+int ADIOI_BV_Feature(ADIO_File fd, int flag)
 {
     switch (flag) {
         case ADIO_SCALABLE_OPEN:
