@@ -54,9 +54,9 @@ extern struct ADIOI_Fns_struct ADIO_GPFS_operations;
 extern struct ADIOI_Fns_struct ADIO_IME_operations;
 #endif
 
-#ifdef ROMIO_MOCHIO
-/* prototypes are in adio/ad_mochio/ad_mochio.h */
-extern struct ADIOI_Fns_struct ADIO_MOCHIO_operations;
+#ifdef ROMIO_BV
+/* prototypes are in adio/ad_benvolio/ad_bv.h */
+extern struct ADIOI_Fns_struct ADIO_BV_operations;
 #endif
 
 #endif /* ADIOI_FS_PROTO_H_INCLUDED */

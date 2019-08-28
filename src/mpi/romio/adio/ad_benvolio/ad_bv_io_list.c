@@ -8,8 +8,8 @@
 #include <assert.h>
 #include "adio.h"
 #include "adio_extern.h"
-#include "ad_mochio.h"
-#include "ad_mochio_common.h"
+#include "ad_bv.h"
+#include "ad_bv_common.h"
 
 #if 0
 #define DEBUG_LIST 1
@@ -273,7 +273,7 @@ static void print_buf_file_ol_pairs(char *buf_off_arr[],
 
 }
 #endif
-int ADIOI_MOCHIO_StridedListIO(ADIO_File fd, void *buf, int count,
+int ADIOI_BV_StridedListIO(ADIO_File fd, void *buf, int count,
                                MPI_Datatype datatype, int file_ptr_type,
                                ADIO_Offset offset, ADIO_Status * status,
                                int *error_code, int rw_type)
@@ -305,7 +305,7 @@ int ADIOI_MOCHIO_StridedListIO(ADIO_File fd, void *buf, int count,
     MPI_Count buftype_size = -1, filetype_size = -1;
     MPI_Aint filetype_extent = -1, buftype_extent = -1;;
 
-    static char myname[] = "ADIOI_MOCHIO_STRIDED_LISTIO";
+    static char myname[] = "ADIOI_BV_STRIDED_LISTIO";
 
     if (fd->atomicity) {
         *error_code = MPIO_Err_create_code(MPI_SUCCESS,
@@ -313,7 +313,7 @@ int ADIOI_MOCHIO_StridedListIO(ADIO_File fd, void *buf, int count,
                                            myname, __LINE__,
                                            MPI_ERR_ARG,
                                            "Atomic noncontiguous writes"
-                                           " are not supported by MOCHIO", 0);
+                                           " are not supported by BV", 0);
         return -1;
     }
 
@@ -385,7 +385,7 @@ int ADIOI_MOCHIO_StridedListIO(ADIO_File fd, void *buf, int count,
         }
     }
 #ifdef DEBUG_LIST
-    fprintf(stderr, "ADIOI_MOCHIO_StridedListIO: (fd->fp_ind=%lld,fd->disp=%lld,"
+    fprintf(stderr, "ADIOI_BV_StridedListIO: (fd->fp_ind=%lld,fd->disp=%lld,"
             " offset=%Ld)\n(flat_file_index=%d,cur_flat_file_reg_off=%ld,"
             "bytes_into_filetype=%d)\n",
             fd->fp_ind, fd->disp, offset, flat_file_index,
@@ -462,19 +462,19 @@ int ADIOI_MOCHIO_StridedListIO(ADIO_File fd, void *buf, int count,
         /* Run list I/O operation */
         if (rw_type == READ_OP) {
             response =
-                mochio_read(fd->fs_ptr, fd->filename, buf_ol_count, (const char **) buf_off_arr,
+                bv_read(fd->fs_ptr, fd->filename, buf_ol_count, (const char **) buf_off_arr,
                             buf_len_arr, file_ol_count, file_off_arr, file_len_arr);
         } else {
             response =
-                mochio_write(fd->fs_ptr, fd->filename, buf_ol_count, (const char **) buf_off_arr,
+                bv_write(fd->fs_ptr, fd->filename, buf_ol_count, (const char **) buf_off_arr,
                              buf_len_arr, file_ol_count, file_off_arr, file_len_arr);
         }
         if (response == -1) {
-            fprintf(stderr, "ADIOI_MOCHIO_StridedListIO: Warning - mochio_"
+            fprintf(stderr, "ADIOI_BV_StridedListIO: Warning - bv_"
                     "read/write completed %lld bytes.\n", (long long) response);
             *error_code = MPIO_Err_create_code(MPI_SUCCESS,
                                                MPIR_ERR_RECOVERABLE,
-                                               myname, __LINE__, -1, "Error in mochio i/o\n", 0);
+                                               myname, __LINE__, -1, "Error in bv i/o\n", 0);
             goto error_state;
         }
         total_bytes_accessed += response;
@@ -482,7 +482,7 @@ int ADIOI_MOCHIO_StridedListIO(ADIO_File fd, void *buf, int count,
     }
 
 #ifdef DEBUG_LIST
-    fprintf(stderr, "ADIOI_MOCHIO_StridedListIO: "
+    fprintf(stderr, "ADIOI_BV_StridedListIO: "
             "total_bytes_accessed=%Ld,ret=%lld\n", total_bytes_accessed, response);
 #endif
 
