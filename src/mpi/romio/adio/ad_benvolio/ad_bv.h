@@ -40,5 +40,6 @@ void ADIOI_BV_OldStridedListIO(ADIO_File fd, void *buf, int count,
                                    ADIO_Offset offset, ADIO_Status * status,
                                    int *error_code, int rw_type);
 
+void ADIOI_BV_Fcntl(ADIO_File fd, int flag, ADIO_Fcntl_t * fcntl_struct, int *error_code);
 
 int ADIOI_BV_Feature(ADIO_File fd, int flag);
