@@ -12,19 +12,20 @@
 #include "adioi.h"
 
 struct ADIOI_Fns_struct ADIO_BV_operations = {
-    ADIOI_BV_Open,  /* Open */
+    ADIOI_BV_Open,      /* Open */
     ADIOI_SCALEABLE_OpenColl, /* OpenColl */ /*XXX*/
-        ADIOI_BV_ReadContig,        /* ReadContig */
-    ADIOI_BV_WriteContig,   /* WriteContig */
+        ADIOI_BV_ReadContig,    /* ReadContig */
+    ADIOI_BV_WriteContig,       /* WriteContig */
     /* no collectives for BV: same as indep */
-    ADIOI_BV_ReadStrided,   /* ReadStridedColl */
-    ADIOI_BV_WriteStrided,  /* WriteStridedColl */
+    ADIOI_BV_ReadStrided,       /* ReadStridedColl */
+    ADIOI_BV_WriteStrided,      /* WriteStridedColl */
     ADIOI_GEN_SeekIndividual,   /* SeekIndividual */
-    ADIOI_GEN_Fcntl,    /* Fcntl */
+    /* custom fcntl to obtain file size */
+    ADIOI_BV_Fcntl,     /* Fcntl */
     ADIOI_GEN_SetInfo,  /* SetInfo */
-    ADIOI_BV_ReadStrided,   /* ReadStrided */
-    ADIOI_BV_WriteStrided,  /* WriteStrided */
-    ADIOI_BV_Close, /* Close */
+    ADIOI_BV_ReadStrided,       /* ReadStrided */
+    ADIOI_BV_WriteStrided,      /* WriteStrided */
+    ADIOI_BV_Close,     /* Close */
     ADIOI_FAKE_IreadContig,     /* IreadContig */
     ADIOI_FAKE_IwriteContig,    /* IwriteContig */
     ADIOI_FAKE_IODone,  /* ReadDone */
