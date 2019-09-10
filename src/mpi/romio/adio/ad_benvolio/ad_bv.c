@@ -36,7 +36,7 @@ struct ADIOI_Fns_struct ADIO_BV_operations = {
     ADIOI_FAKE_IwriteStrided,   /* IwriteStrided */
     ADIOI_GEN_Flush,    /* Flush */
     ADIOI_GEN_Resize,   /* Resize */
-    ADIOI_GEN_Delete,   /* Delete */
+    ADIOI_BV_Delete,    /* Delete */
     ADIOI_BV_Feature,
     "BENVOLIO: ROMIO + Mochi",
     ADIOI_GEN_IreadStridedColl,
