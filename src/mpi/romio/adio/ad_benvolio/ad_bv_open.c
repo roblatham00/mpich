@@ -4,7 +4,7 @@
 /* collectively called among all processes, which means we can collectively execute romio_init() */
 void ADIOI_BV_Open(ADIO_File fd, int *error_code)
 {
-    int perm, old_mask, amode;
+    int perm, old_mask, amode, ret;
 
     if (fd->perm == ADIO_PERM_NULL) {
         old_mask = umask(022);
@@ -29,7 +29,20 @@ void ADIOI_BV_Open(ADIO_File fd, int *error_code)
 
     struct bv_stats file_stats;
     fd->fs_ptr = ADIOI_BV_Init(fd->comm, error_code);
-    bv_declare(fd->fs_ptr, fd->filename, amode, perm);
-    bv_stat(fd->fs_ptr, fd->filename, &file_stats);
+    ret = bv_declare(fd->fs_ptr, fd->filename, amode, perm);
+    if (ret != 0) {
+        *error_code = MPIO_Err_create_code(MPI_SUCCESS,
+                                           MPIR_ERR_RECOVERABLE,
+                                           "bv_open", __LINE__, MPI_ERR_FILE, "Benvolio error", 0);
+        return;
+    }
+    ret = bv_stat(fd->fs_ptr, fd->filename, &file_stats);
+    if (ret != 0) {
+        *error_code = MPIO_Err_create_code(MPI_SUCCESS,
+                                           MPIR_ERR_RECOVERABLE,
+                                           "bv_open", __LINE__, MPI_ERR_FILE, "Benvolio error", 0);
+        return;
+    }
+
     *error_code = MPI_SUCCESS;
 }
