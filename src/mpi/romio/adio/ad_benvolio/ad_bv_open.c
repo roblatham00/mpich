@@ -33,14 +33,14 @@ void ADIOI_BV_Open(ADIO_File fd, int *error_code)
     if (ret != 0) {
         *error_code = MPIO_Err_create_code(MPI_SUCCESS,
                                            MPIR_ERR_RECOVERABLE,
-                                           "bv_open", __LINE__, MPI_ERR_FILE, "Benvolio error", 0);
+                                           "bv_declare", __LINE__, MPI_ERR_FILE, "Benvolio error", 0);
         return;
     }
     ret = bv_stat(fd->fs_ptr, fd->filename, &file_stats);
     if (ret != 0) {
         *error_code = MPIO_Err_create_code(MPI_SUCCESS,
                                            MPIR_ERR_RECOVERABLE,
-                                           "bv_open", __LINE__, MPI_ERR_FILE, "Benvolio error", 0);
+                                           "bv_stat", __LINE__, MPI_ERR_FILE, "Benvolio error", 0);
         return;
     }
 
