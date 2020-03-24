@@ -17,7 +17,7 @@ void ADIOI_BV_Delete(const char *filename, int *error_code)
         *error_code = MPIO_Err_create_code(MPI_SUCCESS,
                                            MPIR_ERR_RECOVERABLE,
                                            "ADIOI_BV_Delete", __LINE__, MPI_ERR_IO,
-                                           "Error in bv_delete", "unknown", ret);
+                                           "Error in bv_delete", "**io %s", ret);
     }
     /* --END ERROR HANDLING-- */
     else
