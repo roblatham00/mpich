@@ -21,6 +21,8 @@ static int ADIOI_BV_End_call(MPI_Comm comm, int keyval, void *attribute_val, voi
 bv_client_t ADIOI_BV_Init(MPI_Comm comm, int *error_code)
 {
     bv_client_t client_info = NULL;
+    bv_config_t cfg = NULL;
+    ssize_t cfg_size = 0;
     int can_skip, is_initialized = 0;
     int flag;
     /* hate to put another collective call here, but agreeing we all need to
@@ -42,7 +44,21 @@ bv_client_t ADIOI_BV_Init(MPI_Comm comm, int *error_code)
              * if (old_info != NULL) bv_finalize(old_info);
              */
         }
-        client_info = bv_init(comm, getenv("BV_STATEFILE"));
+        int rank;
+        MPI_Comm_rank(comm, &rank);
+        if (rank == 0) {
+            cfg = bvutil_cfg_get(getenv("BV_STATEFILE"));
+            cfg_size = bvutil_cfg_getsize(cfg);
+        }
+        MPI_Bcast(&cfg_size, 8, MPI_BYTE, 0, comm);
+        if (cfg == NULL) cfg = ADIOI_Malloc(cfg_size);
+        MPI_Bcast(cfg, cfg_size, MPI_BYTE, 0, comm);
+
+        client_info = bv_init(cfg);
+        if (rank == 0)
+            bvutil_cfg_free(cfg);
+        else
+            ADIOI_Free(cfg);
         MPI_Comm_create_keyval(MPI_NULL_COPY_FN, ADIOI_BV_End_call, &ADIOI_BV_Initialized,
                                (void *) client_info);
         MPI_Comm_set_attr(MPI_COMM_SELF, ADIOI_BV_Initialized, client_info);
