@@ -34,7 +34,7 @@ struct ADIOI_Fns_struct ADIO_BV_operations = {
     ADIOI_FAKE_IOComplete,      /* WriteComplete */
     ADIOI_FAKE_IreadStrided,    /* IreadStrided */
     ADIOI_FAKE_IwriteStrided,   /* IwriteStrided */
-    ADIOI_GEN_Flush,    /* Flush */
+    ADIOI_BV_Flush,    /* Flush */
     ADIOI_GEN_Resize,   /* Resize */
     ADIOI_BV_Delete,    /* Delete */
     ADIOI_BV_Feature,
