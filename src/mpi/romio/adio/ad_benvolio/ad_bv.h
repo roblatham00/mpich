@@ -43,4 +43,6 @@ void ADIOI_BV_Fcntl(ADIO_File fd, int flag, ADIO_Fcntl_t * fcntl_struct, int *er
 
 void ADIOI_BV_Delete(const char *filename, int *error_code);
 
+void ADIOI_BV_Flush(ADIO_File fd, int *error_code);
+
 int ADIOI_BV_Feature(ADIO_File fd, int flag);
