@@ -45,4 +45,6 @@ void ADIOI_BV_Delete(const char *filename, int *error_code);
 
 void ADIOI_BV_Flush(ADIO_File fd, int *error_code);
 
+void ADIOI_BV_Resize(ADIO_File fd, ADIO_Offset size, int *error_code);
+
 int ADIOI_BV_Feature(ADIO_File fd, int flag);
