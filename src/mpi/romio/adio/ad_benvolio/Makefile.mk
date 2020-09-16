@@ -18,6 +18,7 @@ romio_other_sources +=                 \
     adio/ad_benvolio/ad_bv_io_list_classic.c \
     adio/ad_benvolio/ad_bv_fcntl.c \
     adio/ad_benvolio/ad_bv_delete.c \
-    adio/ad_benvolio/ad_bv_flush.c
+    adio/ad_benvolio/ad_bv_flush.c \
+    adio/ad_benvolio/ad_bv_resize.c
 
 endif BUILD_AD_BENVOLIO
