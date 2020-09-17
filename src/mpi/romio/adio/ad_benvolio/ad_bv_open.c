@@ -1,10 +1,12 @@
 #include "ad_bv.h"
 #include "ad_bv_common.h"
 
-/* collectively called among all processes, which means we can collectively execute romio_init() */
+/* collectively called among all processes, which means we can use the "open +
+ * bcast" optimization from pvfs2 */
 void ADIOI_BV_Open(ADIO_File fd, int *error_code)
 {
     int perm, old_mask, amode, ret;
+    int rank;
 
     if (fd->perm == ADIO_PERM_NULL) {
         old_mask = umask(022);
@@ -28,15 +30,31 @@ void ADIOI_BV_Open(ADIO_File fd, int *error_code)
 
 
     struct bv_stats file_stats;
+
+    /* Note that ADIOI_BV_Init is collective (maybe I should give it an _all
+     * suffix).  In some drivers we try to initialize the underlying library
+     * just once.  We wrote ADIOI_BV_Init, however, so that we can call it lots
+     * of times (don't do that, though).  If benvolio has already been
+     * initialized, ADIOI_BV_Init won't do any work and will instead pull data
+     * from the attribute we placed on COMM_SELF */
     fd->fs_ptr = ADIOI_BV_Init(fd->comm, error_code);
-    ret = bv_declare(fd->fs_ptr, fd->filename, amode, perm);
+
+    MPI_Comm_rank(fd->comm, &rank);
+    if (rank == fd->hints->ranklist[0] )
+        ret = bv_declare(fd->fs_ptr, fd->filename, amode, perm);
+    MPI_Bcast(&ret, 1, MPI_INT, fd->hints->ranklist[0], fd->comm);
+
     if (ret != 0) {
         *error_code = MPIO_Err_create_code(MPI_SUCCESS,
                                            MPIR_ERR_RECOVERABLE,
                                            "bv_declare", __LINE__, MPI_ERR_FILE, "Benvolio error", 0);
         return;
     }
-    ret = bv_stat(fd->fs_ptr, fd->filename, &file_stats);
+    if (rank == fd->hints->ranklist[0])
+        ret = bv_stat(fd->fs_ptr, fd->filename, &file_stats);
+    MPI_Bcast(&file_stats, sizeof(file_stats), MPI_BYTE, fd->hints->ranklist[0], fd->comm);
+    MPI_Bcast(&ret, 1, MPI_INT, fd->hints->ranklist[0], fd->comm);
+
     if (ret != 0) {
         *error_code = MPIO_Err_create_code(MPI_SUCCESS,
                                            MPIR_ERR_RECOVERABLE,
