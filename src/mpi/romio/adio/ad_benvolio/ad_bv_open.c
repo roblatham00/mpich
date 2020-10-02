@@ -50,10 +50,8 @@ void ADIOI_BV_Open(ADIO_File fd, int *error_code)
                                            "bv_declare", __LINE__, MPI_ERR_FILE, "Benvolio error", 0);
         return;
     }
-    if (rank == fd->hints->ranklist[0])
-        ret = bv_stat(fd->fs_ptr, fd->filename, &file_stats);
-    MPI_Bcast(&file_stats, sizeof(file_stats), MPI_BYTE, fd->hints->ranklist[0], fd->comm);
-    MPI_Bcast(&ret, 1, MPI_INT, fd->hints->ranklist[0], fd->comm);
+    /* because of some internal state, we have to have all clients call stat */
+    ret = bv_stat(fd->fs_ptr, fd->filename, &file_stats);
 
     if (ret != 0) {
         *error_code = MPIO_Err_create_code(MPI_SUCCESS,
