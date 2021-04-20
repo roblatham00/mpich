@@ -63,4 +63,8 @@ extern struct ADIOI_Fns_struct ADIO_QUOBYTEFS_operations;
 extern void ADIOI_QUOBYTEFS_CreateAdapter(const char *, int *);
 #endif
 
+#ifdef ROMIO_UNIFY
+extern struct ADIOI_Fns_struct ADIO_UNIFY_operations;
+#endif
+
 #endif /* ADIOI_FS_PROTO_H_INCLUDED */

@@ -41,6 +41,7 @@
 #include "gpfs.h"
 #endif
 
+
 /* Notes on detection process:
  *
  * There are three more "general" mechanisms that we use for detecting
@@ -180,6 +181,9 @@ static struct ADIO_FSTypes fstypes[] = {
 #endif
 #ifdef ROMIO_QUOBYTEFS
     {&ADIO_QUOBYTEFS_operations, ADIO_QUOBYTEFS, "quobyte:"},
+#endif
+#ifdef ROMIO_UNIFY
+    {&ADIO_UNIFY_operations, ADIO_UNIFY, "unify:"},
 #endif
     {0, 0, 0}   /* guard entry */
 };
