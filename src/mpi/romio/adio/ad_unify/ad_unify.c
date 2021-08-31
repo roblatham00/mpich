@@ -19,7 +19,7 @@ struct ADIOI_Fns_struct ADIO_UNIFY_operations = {
     ADIOI_GEN_Fcntl,    /* Fcntl */
     ADIOI_GEN_SetInfo,  /* SetInfo */
     ADIOI_GEN_ReadStrided,      /* ReadStrided */
-    ADIOI_GEN_WriteStrided,     /* WriteStrided */
+    ADIOI_GEN_WriteStrided_naive,       /* WriteStrided */
     ADIOI_UNIFY_Close,  /* Close */
 #ifdef HAVE_MPI_GREQUEST_EXTENSIONS
     ADIOI_GEN_IReadContig,      /* IreadContig */
