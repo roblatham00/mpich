@@ -122,4 +122,5 @@ void ADIOI_UNIFY_WriteContig(ADIO_File fd,
     UNIFY_IOContig(fd,
                    (void *) buf,
                    count, datatype, file_ptr_type, offset, status, UNIFY_WRITE, error_code);
+    ADIOI_UNIFY_Flush(fd, error_code);
 }
