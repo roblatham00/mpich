@@ -34,7 +34,7 @@ struct ADIOI_Fns_struct ADIO_UNIFY_operations = {
     ADIOI_FAKE_IOComplete,      /* WriteComplete */
     ADIOI_FAKE_IreadStrided,    /* IreadStrided */
     ADIOI_FAKE_IwriteStrided,   /* IwriteStrided */
-    ADIOI_GEN_Flush,    /* Flush */
+    ADIOI_UNIFY_Flush,  /* Flush */
     ADIOI_GEN_Resize,   /* Resize */
     ADIOI_GEN_Delete,   /* Delete */
     ADIOI_GEN_Feature,
