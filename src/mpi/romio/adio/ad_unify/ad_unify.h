@@ -29,7 +29,7 @@ void ADIOI_GEN_ReadStrided(ADIO_File fd, void *buf, int count,
                            ADIO_Offset offset, ADIO_Status * status, int
                            *error_code);
 void ADIOI_UNIFY_Flush(ADIO_File fd, int *error_code);
-void ADIOI_GEN_Delete(const char *filename, int *error_code);
+void ADIOI_UNIFY_Delete(const char *filename, int *error_code);
 void ADIOI_GEN_Resize(ADIO_File fd, ADIO_Offset size, int *error_code);
 void ADIOI_GEN_SetInfo(ADIO_File fd, MPI_Info users_info, int *error_code);
 int ADIOI_GEN_Feature(ADIO_File fd, int flag);

@@ -14,6 +14,7 @@ romio_other_sources +=                          \
     adio/ad_unify/ad_unify_open.c \
     adio/ad_unify/ad_unify_close.c \
     adio/ad_unify/ad_unify_io.c \
-    adio/ad_unify/ad_unify_flush.c
+    adio/ad_unify/ad_unify_flush.c \
+    adio/ad_unify/ad_unify_delete.c
 
 endif BUILD_AD_UNIFY
