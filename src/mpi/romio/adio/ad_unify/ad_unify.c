@@ -16,7 +16,7 @@ struct ADIOI_Fns_struct ADIO_UNIFY_operations = {
     ADIOI_GEN_ReadStridedColl,  /* ReadStridedColl */
     ADIOI_GEN_WriteStridedColl, /* WriteStridedColl */
     ADIOI_GEN_SeekIndividual,   /* SeekIndividual */
-    ADIOI_GEN_Fcntl,    /* Fcntl */
+    ADIOI_UNIFY_Fcntl,  /* Fcntl */
     ADIOI_GEN_SetInfo,  /* SetInfo */
     ADIOI_GEN_ReadStrided,      /* ReadStrided */
     ADIOI_GEN_WriteStrided_naive,       /* WriteStrided */
@@ -35,7 +35,7 @@ struct ADIOI_Fns_struct ADIO_UNIFY_operations = {
     ADIOI_FAKE_IreadStrided,    /* IreadStrided */
     ADIOI_FAKE_IwriteStrided,   /* IwriteStrided */
     ADIOI_UNIFY_Flush,  /* Flush */
-    ADIOI_GEN_Resize,   /* Resize */
+    ADIOI_UNIFY_Resize, /* Resize */
     ADIOI_UNIFY_Delete, /* Delete */
     ADIOI_GEN_Feature,
     "UNIFY: the burst-buffer file system",
