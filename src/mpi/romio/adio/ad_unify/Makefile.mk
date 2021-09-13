@@ -16,6 +16,7 @@ romio_other_sources +=                          \
     adio/ad_unify/ad_unify_io.c \
     adio/ad_unify/ad_unify_flush.c \
     adio/ad_unify/ad_unify_delete.c \
-    adio/ad_unify/ad_unify_fcntl.c
+    adio/ad_unify/ad_unify_fcntl.c \
+    adio/ad_unify/ad_unify_resize.c
 
 endif BUILD_AD_UNIFY
