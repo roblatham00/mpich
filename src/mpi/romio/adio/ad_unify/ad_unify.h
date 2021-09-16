@@ -32,7 +32,7 @@ void ADIOI_UNIFY_Flush(ADIO_File fd, int *error_code);
 void ADIOI_UNIFY_Delete(const char *filename, int *error_code);
 void ADIOI_UNIFY_Resize(ADIO_File fd, ADIO_Offset size, int *error_code);
 void ADIOI_GEN_SetInfo(ADIO_File fd, MPI_Info users_info, int *error_code);
-int ADIOI_GEN_Feature(ADIO_File fd, int flag);
+int ADIOI_UNIFY_Feature(ADIO_File fd, int flag);
 
 void ADIOI_GEN_IReadContig(ADIO_File fd, void *buf, int count,
                            MPI_Datatype datatype, int file_ptr_type,
