@@ -17,6 +17,7 @@ romio_other_sources +=                  \
     adio/common/ad_fcntl.c              \
     adio/common/ad_features.c           \
     adio/common/ad_flush.c              \
+    adio/common/ad_fence.c              \
     adio/common/ad_fstype.c             \
     adio/common/ad_get_sh_fp.c          \
     adio/common/ad_hints.c              \

@@ -30,6 +30,7 @@ struct ADIOI_Fns_struct ADIO_TESTFS_operations = {
     ADIOI_TESTFS_IreadStrided,  /* IreadStrided */
     ADIOI_TESTFS_IwriteStrided, /* IwriteStrided */
     ADIOI_TESTFS_Flush, /* Flush */
+    ADIOI_TESTFS_Fence, /* Fence */
     ADIOI_TESTFS_Resize,        /* Resize */
     ADIOI_TESTFS_Delete,        /* Delete */
     ADIOI_GEN_Feature,  /* Features */

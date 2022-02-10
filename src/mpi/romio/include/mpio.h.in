@@ -246,6 +246,7 @@ int MPI_Register_datarep(const char *datarep, MPI_Datarep_conversion_function *r
 int MPI_File_set_atomicity(MPI_File fh, int flag) ROMIO_API_PUBLIC;
 int MPI_File_get_atomicity(MPI_File fh, int *flag) ROMIO_API_PUBLIC;
 int MPI_File_sync(MPI_File fh) ROMIO_API_PUBLIC;
+int MPI_File_fence(MPI_File fh) ROMIO_API_PUBLIC;
 
 /* Section 4.13.3 */
 #ifndef MPICH
@@ -549,6 +550,7 @@ int PMPI_Register_datarep(const char *,
 int PMPI_File_set_atomicity(MPI_File, int) ROMIO_API_PUBLIC;
 int PMPI_File_get_atomicity(MPI_File, int *) ROMIO_API_PUBLIC;
 int PMPI_File_sync(MPI_File) ROMIO_API_PUBLIC;
+int PMPI_File_fence(MPI_File) ROMIO_API_PUBLIC;
 
 /* Section 4.13.3 */
 #ifndef MPICH

@@ -62,6 +62,7 @@ void ADIOI_TESTFS_IwriteStrided(ADIO_File fd, const void *buf, int count,
                                 ADIO_Offset offset, ADIO_Request * request, int
                                 *error_code);
 void ADIOI_TESTFS_Flush(ADIO_File fd, int *error_code);
+void ADIOI_TESTFS_Fence(ADIO_File fd, int *error_code);
 void ADIOI_TESTFS_Resize(ADIO_File fd, ADIO_Offset size, int *error_code);
 ADIO_Offset ADIOI_TESTFS_SeekIndividual(ADIO_File fd, ADIO_Offset offset,
                                         int whence, int *error_code);
