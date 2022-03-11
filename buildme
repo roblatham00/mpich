@@ -1,0 +1,122 @@
+#!/bin/bash
+
+# run this to apply patches and create a new mv2 tarball
+
+set -x
+
+export PKG_CONFIG_PATH="/path/to/unifyfs/install/lib/pkgconfig":$PKG_CONFIG_PATH
+
+# build autotools that we need (one of the patches below changes configure)
+pushd autotools
+  ./buildme
+popd
+
+# add autotools install bin to our path
+export PATH=`pwd`/autotools/install/bin:$PATH
+
+# MPI installation directory
+installdir=`pwd`/install-gnu-main
+rm -rf $installdir
+
+# GNU compiler settings
+export CC=gcc 
+export CXX=g++ 
+export F77=gfortran
+export FC=gfortran
+#export MPICHLIB_CFLAGS="-g -O2"
+#export MPICHLIB_CXXFLAGS="-g -O2"
+#export MPICHLIB_FFLAGS="-g -O2 -fno-second-underscore"
+#export MPICHLIB_FCFLAGS="-g -O2 -fno-second-underscore"
+export CFLAGS="-I/usr/include/slurm"
+export MPICHLIB_CFLAGS="-g -O0 -I/usr/include/slurm"
+export MPICHLIB_CXXFLAGS="-g -O0"
+export MPICHLIB_FFLAGS="-g -O0 -fno-second-underscore"
+export MPICHLIB_FCFLAGS="-g -O0 -fno-second-underscore"
+
+# Intel compiler settings
+#export CC=icc 
+#export CXX=icpc
+#export F77=ifort
+#export FC=ifort
+#export MPICHLIB_CFLAGS="-g -O2"
+#export MPICHLIB_CXXFLAGS="-g -O2"
+#export MPICHLIB_FFLAGS="-g -O2"
+#export MPICHLIB_FCFLAGS="-g -O2"
+#export MPICHLIB_CFLAGS="-g -O0"
+#export MPICHLIB_CXXFLAGS="-g -O0"
+#export MPICHLIB_FFLAGS="-g -O0"
+#export MPICHLIB_FCFLAGS="-g -O0"
+
+# PGI compiler settings
+#export CC=pgcc 
+#export CXX=pgCC
+#export F77=pgf77
+##export FC=pgf90
+#export MPICHLIB_CFLAGS="-g -O2 -fPIC"
+#export MPICHLIB_CXXFLAGS="-g -O2 -fPIC"
+#export MPICHLIB_FFLAGS="-g -O2 -fPIC"
+#export MPICHLIB_FCFLAGS="-g -O2 -fPIC"
+
+# Pathscale compiler settings
+#export CC=pathcc 
+#export CXX=pathCC
+#export F77=pathf90
+##export FC=pathf90
+#export MPICHLIB_CFLAGS="-g -O2"
+#export MPICHLIB_CXXFLAGS="-g -O2"
+#export MPICHLIB_FFLAGS="-g -O2 -fno-second-underscore"
+#export MPICHLIB_FCFLAGS="-g -O2 -fno-second-underscore"
+
+#export CONFIG_FLAGS="--disable-fast --enable-g=dbg --enable-error-checking=runtime --enable-error-messages=all --enable-nmpi-as-mpi"
+export CONFIG_FLAGS="--enable-fast=all --enable-g=dbg --enable-nmpi-as-mpi"
+
+# PMI library:  PMGR_COLLECTIVE, SLURM
+export PMI="--with-pm=no --with-pmi=slurm"
+#export PMI="--with-pm=slurm --with-pmi=pmi2"
+#export PMI="--with-pm=no --with-pmi=pmi2"
+
+# Network devices:  PSM, Mellanox, Shared Memory, Mellanox + CUDA
+#export DEVICE_FLAGS="--with-device=ch3:psm --with-psm2"
+#export DEVICE_FLAGS="--with-device=ch3:psm --with-psm2 --with-psm2-lib=/usr/lib64"
+#export DEVICE_FLAGS="--with-device=ch3:psm --with-psm"
+#export DEVICE_FLAGS="--with-device=ch3:psm --with-psm --with-psm-lib=/usr/lib64"
+#export DEVICE_FLAGS="--with-device=ch3:psm"
+#export DEVICE_FLAGS="--with-device=ch3:mrail --with-rdma=gen2"
+#export DEVICE_FLAGS="--with-device=ch3:mrail --with-rdma=gen2 --enable-cuda --with-cuda=/opt/cudatoolkit-5.0"
+#export DEVICE_FLAGS="--with-device=ch3:nemesis"
+export DEVICE_FLAGS="--with-device=ch3"
+
+#export REG_CACHE="--disable-registration-cache"
+export REG_CACHE=""
+
+./autogen.sh
+
+rm -rf build
+mkdir build
+pushd build
+
+../configure \
+  --prefix=${installdir} \
+  --enable-f77 --enable-fc --enable-cxx \
+  ${CONFIG_FLAGS} \
+  --enable-shared --enable-sharedlibs=gcc \
+  --enable-debuginfo \
+  --disable-new-dtags \
+  ${PMI} \
+  ${DEVICE_FLAGS} \
+  ${REG_CACHE} \
+  --with-ch3-rank-bits=32 \
+  --enable-romio --with-file-system=lustre+nfs+ufs \
+  --disable-mpe --without-mpe 2>&1 > configure.out
+
+#  --enable-romio --with-file-system=gpfs+nfs+ufs \
+#  --enable-romio --with-file-system=lustre+nfs+ufs \
+#../configure \
+#--build=x86_64-redhat-linux-gnu --host=x86_64-redhat-linux-gnu --program-prefix= --disable-dependency-tracking --prefix=$installdir/mvapich2-x/gnu4.9.3/ifs/basic/slurm --exec-prefix=${installdir}/mvapich2-x/gnu4.9.3/ifs/basic/slurm --bindir=${installdir}/mvapich2-x/gnu4.9.3/ifs/basic/slurm/bin --sbindir=${installdir}/mvapich2-x/gnu4.9.3/ifs/basic/slurm/sbin --sysconfdir=${installdir}/mvapich2-x/gnu4.9.3/ifs/basic/slurm/etc --datadir=${installdir}/mvapich2-x/gnu4.9.3/ifs/basic/slurm/share --includedir=${installdir}/mvapich2-x/gnu4.9.3/ifs/basic/slurm/include --libdir=${installdir}/mvapich2-x/gnu4.9.3/ifs/basic/slurm/lib64 --libexecdir=${installdir}/mvapich2-x/gnu4.9.3/ifs/basic/slurm/libexec --localstatedir=/var --sharedstatedir=/var/lib --mandir=${installdir}/mvapich2-x/gnu4.9.3/ifs/basic/slurm/share/man --infodir=${installdir}/mvapich2-x/gnu4.9.3/ifs/basic/slurm/share/info CC=gcc CXX=g++ F77=gfortran FC=gfortran --enable-ucr --disable-rpath --disable-static --enable-shared --disable-rdma-cm --without-hydra-ckpointlib --with-pm=slurm --with-pmi=pmi2 --with-device=ch3:psm --disable-mcast --enable-fast=O3 --enable-f77 -enable-fc --enable-cxx --enable-nmpi-as-mpi --enable-shared --enable-sharedlibs=gcc --disable-new-dtags --disable-registration-cache --with-ch3-rank-bits=32 --enable-romio --with-file-system=lustre+nfs+ufs --disable-mpe --without-mpe LDFLAGS=-Wl,-rpath,XORIGIN/placeholder 2>&1 > configure.out
+#exit 0
+
+#make clean
+
+#make -j8 VERBOSE=1 2>&1 > make.out
+
+make install VERBOSE=1

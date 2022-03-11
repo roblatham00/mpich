@@ -20,6 +20,7 @@ romio_other_sources +=                \
     adio/ad_testfs/ad_testfs_iwrite.c \
     adio/ad_testfs/ad_testfs_wait.c   \
     adio/ad_testfs/ad_testfs_flush.c  \
+    adio/ad_testfs/ad_testfs_fence.c  \
     adio/ad_testfs/ad_testfs_seek.c   \
     adio/ad_testfs/ad_testfs_resize.c \
     adio/ad_testfs/ad_testfs_hints.c  \
