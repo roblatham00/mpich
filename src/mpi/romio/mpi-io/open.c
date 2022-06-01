@@ -51,6 +51,41 @@ Output Parameters:
 
 .N fortran
 @*/
+/*
+=== BEGIN_INFO_HINT_BLOCK ===
+hints:
+    - name      : cb_buffer_size
+      functions : MPI_File_set_view, MPI_File_open
+      type      : integer
+      default   : 16777216
+      description:  > -
+        Sets the amount of internal memory ROMIO will use for two phase
+        collecitve I/O buffering.  Larger values allow for fewer rounds of
+        collective I/O but of course leave less memory for application use.
+
+   - name      : romio_cb_read
+     functions : MPI_File_set_view, MPI_File_open
+     type      : enabled/disabled/automatic
+     default   : automatic
+     description:  > -
+        if "enabled", always use two phase collective I/O no matter the access
+        pattern.  If "disable", never use collective I/O optimizations.  If
+        "automatic", ROMIO will look at the access pattern and use collective
+        optimizations if requests are "interleaved".
+
+   - name      : romio_cb_write
+     functions : MPI_File_set_view, MPI_File_open
+     type      : enabled/disabled/automatic
+     default   : automatic
+     description:  > -
+        if "enabled", always use two phase collective I/O no matter the access
+        pattern.  If "disable", never use collective I/O optimizations.  If
+        "automatic", ROMIO will look at the access pattern and use collective
+        optimizations if requests are "interleaved".
+
+
+=== END_INFO_HINT_BLOCK ===
+*/
 int MPI_File_open(MPI_Comm comm, ROMIO_CONST char *filename, int amode,
                   MPI_Info info, MPI_File * fh)
 {
